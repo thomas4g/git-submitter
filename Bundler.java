@@ -154,11 +154,18 @@ public class Bundler {
 
     public static void main(String... args)
         throws IOException, InvalidKeyException {
-        if (args[0].equals("-d")) {
-            decrypt(new File(args[1]), new File("decrypted-" + args[1]),
-                new File(args[2]), "private_key.der");
+        
+        if (args[0].equals("help") || args[0].equals("-h")) {
+            System.out.println("Encrypt:\n java Bundler public_key File1 File2"
+                + " File3");
+            System.out.println("Decrypt:\n java Bundler -d private_key File "
+                + " encrypted_aes_key");
+        } else if (args[0].equals("-d")) {
+            decrypt(new File(args[2]), new File("decrypted-" + args[1]),
+                new File(args[3]), args[1]);
         } else {
-            File zip = zipFiles("submission.zip", Arrays.stream(args)
+            File zip = zipFiles("submission.zip", Arrays.stream(
+                Arrays.copyOfRange(args, 1, args.length))
                 .map(File::new).toArray(File[]::new));
             encrypt(zip, new File("encrypted-submission.zip"),
                 new File("encrypted-aes.der"), "public_key.der");
