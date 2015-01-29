@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Submission Tool" default="submit" basedir=".">
+    <property name="publickey" value="public_key.der"/>
+    <property name="org" value="tshields3"/>
+    <property name="repo" value="test"/>
+    <property name="submission" value="MySingleFile.java"/>
+    <property name="zipname" value="submission.zip"/>
+    <property name="commitmsg" value="watevs"/>
+
+    <target name="submit">
+        <java classname="Bundler" classpath=".">
+            <arg value="${publickey}"/>
+            <!--TODO: *.java doesn't work. Fix?-->
+            <arg value="${submission}"/>
+        </java>
+        <java classname="Submit" classpath=".">
+            <arg value="${org}"/>
+            <arg value="${repo}"/>
+            <arg value="${zipname}"/>
+            <arg value="${commitmsg}"/>
+        </java>
+    </target>
+</project>
+
