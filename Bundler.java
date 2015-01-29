@@ -164,11 +164,14 @@ public class Bundler {
             decrypt(new File(args[2]), new File("decrypted-" + args[1]),
                 new File(args[3]), args[1]);
         } else {
-            File zip = zipFiles("submission.zip", Arrays.stream(
+            File zip = zipFiles("files.zip", Arrays.stream(
                 Arrays.copyOfRange(args, 1, args.length))
                 .map(File::new).toArray(File[]::new));
-            encrypt(zip, new File("encrypted-submission.zip"),
-                new File("encrypted-aes.der"), "public_key.der");
+            File aes = new File("encrypted-aes.der");
+            encrypt(zip, new File("encrypted-files.zip"),
+                aes, "public_key.der");
+
+            File submissionZip = zipFiles("submission.zip", zip, aes);
         }
     }
 
