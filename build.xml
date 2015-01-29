@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Submission Tool" default="submit" basedir=".">
     <property name="publickey" value="public_key.der"/>
-    <property name="org" value="tshields3"/>
-    <property name="repo" value="test"/>
+    <property name="org" value="cs1331"/>
+    <property name="repo" value="someRepoWeCreate"/>
     <property name="submission" value="MySingleFile.java"/>
     <property name="zipname" value="submission.zip"/>
     <property name="commitmsg" value="watevs"/>
