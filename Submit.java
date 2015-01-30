@@ -14,7 +14,7 @@ import java.io.IOException;
 public class Submit {
     private static final String BASE = "https://github.gatech.edu/api/v3/";
 
-    private static String request(String path, String type, String auth,
+    private static int request(String path, String type, String auth,
         String content) throws Exception {
 
         HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
@@ -22,29 +22,37 @@ public class Submit {
         try {
             conn.setRequestMethod(type);
             conn.setRequestProperty("Authorization", "Basic " + auth);
-            if (content.length() > 0) {
                 conn.setDoOutput(true);
+            if (content.length() > 0) {
                 OutputStream os = conn.getOutputStream();
                 os.write(content.getBytes());
                 os.close();
+            } else {
+                conn.setFixedLengthStreamingMode(0); 
             }
-            return new Scanner(conn.getInputStream()).useDelimiter("\\A")
-                .next();
+
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.out.println(conn.getResponseMessage());
         }
-        return "";
+        return conn.getResponseCode();
     }
 
     private static boolean testAuth(String base64)
         throws Exception {
+         return request("", "GET", base64, "") != 401;
+    }
+    
+    private static void create(String user, String repo, String auth) throws Exception {
+        if(request(String.format("repos/%s/%s", user, repo), "GET", auth, "") == 404) {
+            request("user/repos", "POST", auth, 
+                String.format("{\"name\":\"%s\",\"private\": true}", repo));
+        }
+    }
 
-        String resp = request("", "GET", base64, "");
-
-        //TODO: incorporate JSON library and properly check this
-        //because this is sososososos hacky
-        return resp.indexOf("current_user") != -1;
+    private static void addCollab(String owner, String repo, String auth, String user) throws Exception {
+        String path = String.format("repos/%s/%s/collaborators/%s", owner, repo, user);
+        request(path, "PUT", auth, "");
     }
 
     private static boolean pushFile(String repoOwner, String repo, File f,
@@ -58,11 +66,8 @@ public class Submit {
             .format("{\"path\":\"%s\",\"message\":\"%s\",\"content\":\"%s\"}",
                 f.getName(), message, Base64.getEncoder()
                     .encodeToString(fileContents));
-        String resp = request(String.format("repos/%s/%s/contents/%s",
+        return 200 == request(String.format("repos/%s/%s/contents/%s",
             repoOwner, repo, f.getName()), "PUT", auth, json);
-
-        //TODO
-        return true;
     }
 
 
@@ -93,7 +98,13 @@ public class Submit {
             base64 = Base64.getEncoder().encodeToString((user + ":" + password)
                 .getBytes());
         } while (!testAuth(base64));
-        pushFile(args[counter], args[counter + 1], new File(args[counter + 2]),
-            base64, args[counter + 3]);
+        String repo = args[counter++];
+        String file = args[counter++];
+        String msg = args[counter++];
+        String collab = args[counter];
+//        create(user, repo, base64);
+        addCollab(user, repo, base64, collab);
+ //       pushFile(user, repo, new File(file),
+  //          base64, msg);
     }
 }
