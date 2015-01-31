@@ -136,7 +136,7 @@ public class Bundler {
     }
 
 
-    private static File zipFiles(String name, File... files)
+    public static File zipFiles(String name, File... files)
         throws IOException {
         File zip = new File(name);
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zip));
