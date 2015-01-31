@@ -3,6 +3,7 @@
 #temp
 *.swp
 *.swo
+*.swn
 #packages
 *.zip
 #keys
