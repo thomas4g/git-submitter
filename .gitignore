@@ -1,3 +1,6 @@
+lib/
+bin/
+dist/
 #java
 *.class
 #temp

@@ -1,24 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Submission Tool" default="submit" basedir=".">
-    <property name="publickey" value="public_key.der"/>
-    <property name="org" value="cs1331"/>
-    <property name="repo" value="someRepoWeCreate"/>
-    <property name="submission" value="MySingleFile.java"/>
-    <property name="zipname" value="submission.zip"/>
-    <property name="commitmsg" value="watevs"/>
+<project name="Submission Tool" default="compile" basedir=".">
+    <property name="src" value="src"/>
+    <property name="bin" value="bin"/>
+    <property name="lib" value="lib"/>
+    <property name="dist" value="dist"/>   
+    <property name="jar" value="${dist}/C3AS.jar"/>
+    <property name="main-class" value="Application"/>
 
-    <target name="submit">
-        <java classname="Bundler" classpath=".">
-            <arg value="${publickey}"/>
-            <!--TODO: *.java doesn't work. Fix?-->
-            <arg value="${submission}"/>
-        </java>
-        <java classname="Submit" classpath=".">
-            <arg value="${org}"/>
-            <arg value="${repo}"/>
-            <arg value="${zipname}"/>
-            <arg value="${commitmsg}"/>
-        </java>
+    <path id="classpath">
+        <fileset dir="${lib}" includes="**/*.jar"/>
+    </path>
+
+   
+    <target name="init">
+        <mkdir dir="${dist}"/>
+        <mkdir dir="${bin}"/>
+    </target>
+    
+    <target name="clean">
+        <delete dir="${bin}"/>
+        <delete dir="${dist}"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="${src}" destdir="${bin}" classpathref="classpath" includeantruntime="false"/>
+    </target>
+
+    <target name="jar" depends="compile">
+        <manifestclasspath property="jar.classpath" jarfile="${jar}">
+            <classpath refid="classpath" />
+        </manifestclasspath>
+        <property name="config.file" value="config.json"/>
+        <jar basedir="${bin}" destfile="${jar}">
+            <fileset dir="." includes="${config.file}"/>
+            <zipfileset dir="${lib}">
+                <include name="**/*.jar" />
+            </zipfileset>
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+            </manifest>
+        </jar>
     </target>
 </project>
 
