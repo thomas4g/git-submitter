@@ -25,7 +25,7 @@ import java.util.zip.ZipEntry;
 
 import java.util.Arrays;
 
-public class Bundler {
+public class Utils {
     private static final PrintStream DEBUG = System.out;
     private static final int AES_KEY_SIZE = 128;
 
