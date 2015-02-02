@@ -45,9 +45,6 @@ public class Application {
         return new StudentSubmission(user, base64, repo);
     }
 
-    private static void processConfig(File f) {
-
-
     public static void main(String... args) throws Exception {
         /* Input Vars, will come from JSON eventually, hard-coded for now */
         String submissionName = "submission.zip";
@@ -68,9 +65,12 @@ public class Application {
 
         String[] fileNames = args; //change
         System.out.print("Zipping files.......");
-        File submissionZip = Utils.zipFiles(submissionName,
+        File submissionZip = Bundler.zipFiles(submissionName,
             Arrays.stream(fileNames).map(File::new).toArray(File[]::new));
-        System.out.println("...donefor (String s : collaborators) sub.addCollab(s);
+        System.out.println("...done");
+
+        StudentSubmission sub = authenticateAndCreate(repo);
+        for (String s : collaborators) sub.addCollab(s);
 
         if (sub.pushFile(submissionZip, commitMsg))
             System.out.println("Code submitted successfully!");
