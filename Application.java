@@ -65,7 +65,7 @@ public class Application {
 
         String[] fileNames = args; //change
         System.out.print("Zipping files.......");
-        File submissionZip = Bundler.zipFiles(submissionName,
+        File submissionZip = Utils.zipFiles(submissionName,
             Arrays.stream(fileNames).map(File::new).toArray(File[]::new));
         System.out.println("...done");
 
