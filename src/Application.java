@@ -9,9 +9,9 @@ import java.io.File;
 import com.google.gson.Gson;
 
 public class Application {
-    
-    private final static String DEFAULT_CONFIG = "config.json";
-    
+
+    private static final String DEFAULT_CONFIG = "config.json";
+
     private static boolean checkCompile(String[] files) throws Exception {
         List<String> args = Arrays.stream(files).filter(f -> f
             .substring(f.lastIndexOf('.')).equals(".java"))
@@ -26,15 +26,16 @@ public class Application {
     private static StudentSubmission authenticateAndCreate(String repo)
         throws Exception {
         String user = "", password = "", base64 = "";
+        String lines = "------------------------------------------";
         System.out.println();
-        System.out.println("------------------------------------------");
+        System.out.println(lines);
         System.out.println("    Logging in to Georgia Tech servers    ");
-        System.out.println("------------------------------------------");
+        System.out.println(lines);
         do {
             if (base64.length() > 0) {
-                System.out.println("------------------------------------------");
-                System.out.println("      Login failed, please try again      ");
-                System.out.println("------------------------------------------");
+                System.out.println(lines);
+                System.out.println("      Login failed, please try again");
+                System.out.println(lines);
             }
 
             System.out.print("\tUsername: ");
@@ -51,8 +52,10 @@ public class Application {
         return new StudentSubmission(user, base64, repo);
     }
 
-    private static Config processConfig(File f) throws Exception {
-         return new Gson().fromJson(new Scanner(f).useDelimiter("\\A").next(), Config.class);
+    private static Config processConfig() throws Exception {
+        return new Gson().fromJson(new Scanner(Application.class
+            .getResourceAsStream(DEFAULT_CONFIG))
+            .useDelimiter("\\A").next(), Config.class);
     }
 
     private static class Config {
@@ -63,7 +66,7 @@ public class Application {
     }
     public static void main(String... args) throws Exception {
 
-        Config config = processConfig(new File(DEFAULT_CONFIG));
+        Config config = processConfig();
 
         System.out.print("Compiling files.....");
         if (!checkCompile(args)) {

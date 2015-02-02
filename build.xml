@@ -31,8 +31,8 @@
             <classpath refid="classpath" />
         </manifestclasspath>
         <property name="config.file" value="config.json"/>
+        <copy file="${config.file}" tofile="${bin}/config.json"/>
         <jar basedir="${bin}" destfile="${jar}">
-            <fileset dir="." includes="${config.file}"/>
             <zipfileset dir="${lib}">
                 <include name="**/*.jar" />
             </zipfileset>
