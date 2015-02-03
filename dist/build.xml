@@ -6,6 +6,7 @@
     <property name="hamcrest.jar" value="${lib}/hamcrest-core-1.3.jar"/>
     <property name="tests" value="tests"/>
     <property name="submit.jar" value="${lib}/Submit.jar"/>
+    <property name="main-class" value=""/>
     
     <fileset dir="." includes="*.java" id="files" />
     <pathconvert pathsep=" " property="file-list" refid="files" />
@@ -37,6 +38,10 @@
                 </fileset>
             </batchtest>
         </junit> 
+    </target>
+    
+    <target name="run">
+        <java classname="${main-class}"/>
     </target>
 
     <target name="submit">
