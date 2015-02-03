@@ -11,12 +11,14 @@
     <pathconvert pathsep=" " property="file-list" refid="files" />
    
    <target name="compile">
-        <javac srcdir="." destdir="." includeantruntime="false"/>
+        <javac srcdir="." destdir="." includeantruntime="false">
+            <exclude name="${tests}/*.java"/>
+        </javac>
     </target>
 
     <target name="checkstyle">
         <java jar="${checkstyle.jar}" fork="true">
-            <arg line="${file-list}"/>
+            <arg line="'${file-list}'"/>
         </java>
     </target>
 
@@ -26,6 +28,7 @@
                 <pathelement location="${junit.jar}"/>
                 <pathelement location="${hamcrest.jar}"/>
                 <pathelement path="."/>
+                <pathelement path="${tests}"/>
             </classpath>
             <formatter type="plain" usefile="false"/>
             <batchtest fork="yes">
@@ -38,7 +41,7 @@
 
     <target name="submit">
         <java jar="${submit.jar}" fork="true">
-            <arg line="${file-list}"/>
+            <arg line="'${file-list}'"/>
         </java>
     </target>
 </project>

@@ -41,7 +41,7 @@ public class Application {
                 System.out.println("      Login failed, please try again");
                 System.out.println(lines);
             }
-            user = JOptionPane.showInputDialog(null, "User:");
+            user = JOptionPane.showInputDialog(null, "Username (e.g, gburdell3):");
             JPasswordField pf = new JPasswordField();
             int res = JOptionPane.showConfirmDialog(null, pf, "Password:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
             if (res == JOptionPane.OK_OPTION) {

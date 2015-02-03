@@ -47,7 +47,7 @@ public class StudentSubmission {
         return doRequest(path, type, base64Auth, content, out);
     }
 
-    private static int doRequest(String path, String type, String auth,
+    public static int doRequest(String path, String type, String auth,
         String content, StringBuilder sb) throws Exception {
 
         HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
