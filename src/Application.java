@@ -6,7 +6,8 @@ import java.util.stream.Collectors;
 import javax.swing.JPasswordField;
 import javax.swing.JOptionPane;
 import java.io.File;
-
+import java.awt.Desktop;
+import java.net.URI;
 import com.google.gson.Gson;
 
 /* Exceptions*/
@@ -98,8 +99,13 @@ public class Application {
 
             for (String s : config.collaborators) sub.addCollab(s);
 
-            if (sub.pushFile(submissionZip, config.commitMsg))
+            if (sub.pushFile(submissionZip, config.commitMsg)) {
                 System.out.println("Code submitted successfully!");
+                System.out.println("Launching browser to view repo...");
+                Desktop.getDesktop().browse(new URI(
+                    String.format("http://github.gatech.edu/%s/%s", sub.getUser(),
+                    config.repo)));
+            }
             else
                 System.out.println("Submission unsuccessful. :(");
         } catch (UnknownHostException ex) {
