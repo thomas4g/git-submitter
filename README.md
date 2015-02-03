@@ -21,5 +21,7 @@ Packaging for an Assignment
 Files/Folders/What Is it All
 ----------------------------
 `dist/` - contains the jars and a sample build file for the students use
+
 `lib/` - external resources, for now just gson
+
 `src/` - all da codes
