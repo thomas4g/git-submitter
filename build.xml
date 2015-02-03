@@ -25,11 +25,11 @@
     </target>
 
     <target name="jar" depends="compile">
-        <unjar src="${gson}/" dest="${lib}"/>
+        <unjar src="${gson}/" dest="${lib}/tmp"/>
         <property name="config.file" value="config.json"/>
         <copy file="${config.file}" tofile="${bin}/config.json"/>
         <jar basedir="${bin}" destfile="${jar}">
-            <zipfileset dir="${lib}">
+            <zipfileset dir="${lib}/tmp">
                <include name="**" />
                <exclude name="**/*.jar"/>
            </zipfileset>
@@ -38,6 +38,7 @@
                 <attribute name="Class-Path" value=""/>
             </manifest>
         </jar>
+        <delete dir="${lib}/tmp"/>
     </target>
 </project>
 

@@ -13,3 +13,13 @@ Building
 Running
 -------
 `java -jar dist/C3AS.jar MyJavaFile.java AllThe.java Such.java So.java Wow.java`
+
+Packaging for an Assignment
+---------------------------
+`./package.sh zip-file-prefix config.json JUnitTest.class Code.java SomeMore.java Etc.java`
+
+Files/Folders/What Is it All
+----------------------------
+`dist/` - contains the jars and a sample build file for the students use
+`lib/` - external resources, for now just gson
+`src/` - all da codes
