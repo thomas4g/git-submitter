@@ -1,44 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Submission Tool" default="compile" basedir=".">
+<project name="Submission Tool" default="jar" basedir=".">
     <property name="src" value="src"/>
     <property name="bin" value="bin"/>
     <property name="lib" value="lib"/>
     <property name="dist" value="dist"/>   
-    <property name="jar" value="${dist}/C3AS.jar"/>
+    <property name="jar" value="Submit.jar"/>
+    <property name="gson" value="${lib}/gson-2.3.1.jar"/>
     <property name="main-class" value="Application"/>
 
     <path id="classpath">
         <fileset dir="${lib}" includes="**/*.jar"/>
     </path>
 
+    <target name="clean">
+        <delete dir="${bin}"/>
+    </target>
    
-    <target name="init">
-        <mkdir dir="${dist}"/>
+    <target name="init" depends="clean">
         <mkdir dir="${bin}"/>
     </target>
     
-    <target name="clean">
-        <delete dir="${bin}"/>
-        <delete dir="${dist}"/>
-    </target>
-
     <target name="compile" depends="init">
         <javac srcdir="${src}" destdir="${bin}" classpathref="classpath" includeantruntime="false"/>
     </target>
 
     <target name="jar" depends="compile">
-        <manifestclasspath property="jar.classpath" jarfile="${jar}">
-            <classpath refid="classpath" />
-        </manifestclasspath>
+        <unjar src="${gson}/" dest="${lib}"/>
         <property name="config.file" value="config.json"/>
         <copy file="${config.file}" tofile="${bin}/config.json"/>
         <jar basedir="${bin}" destfile="${jar}">
             <zipfileset dir="${lib}">
-                <include name="**/*.jar" />
-            </zipfileset>
+               <include name="**" />
+               <exclude name="**/*.jar"/>
+           </zipfileset>
             <manifest>
                 <attribute name="Main-Class" value="${main-class}"/>
-                <attribute name="Class-Path" value="${jar.classpath}"/>
+                <attribute name="Class-Path" value=""/>
             </manifest>
         </jar>
     </target>
