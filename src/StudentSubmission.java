@@ -53,6 +53,9 @@ public class StudentSubmission {
     public String getUser() {
         return user;
     }
+    public String getRepo() {
+        return repo;
+    }
     private int request(String path, String type, String content)
         throws Exception {
         return doRequest(path, type, base64Auth, content, null, headers, null);

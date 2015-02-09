@@ -3,7 +3,6 @@
     <property name="src" value="src"/>
     <property name="bin" value="bin"/>
     <property name="lib" value="lib"/>
-    <property name="dist" value="dist"/>   
     <property name="jar" value="Submit.jar"/>
     <property name="gson" value="${lib}/gson-2.3.1.jar"/>
     <property name="main-class" value="Application"/>
@@ -26,8 +25,6 @@
 
     <target name="jar" depends="compile">
         <unjar src="${gson}/" dest="${lib}/tmp"/>
-        <property name="config.file" value="config.json"/>
-        <copy file="${config.file}" tofile="${bin}/config.json"/>
         <jar basedir="${bin}" destfile="${jar}">
             <zipfileset dir="${lib}/tmp">
                <include name="**" />

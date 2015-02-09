@@ -55,6 +55,7 @@ public class Application {
             } else {
                 System.exit(0);
             }
+
             /*System.out.print("\tUsername: ");
             user = System.console().readLine();
             System.out.print("\tPassword: ");
@@ -79,24 +80,22 @@ public class Application {
         System.out.println("------------------------------------------");
         System.out.println("            Authenticated!");
         System.out.println("------------------------------------------");
-        return new StudentSubmission(user, base64, repo, code);
+        return new StudentSubmission(user, base64, user + repo, code);
     }
 
-    private static Config processConfig() throws Exception {
-        return new Gson().fromJson(new Scanner(Application.class
-            .getResourceAsStream(DEFAULT_CONFIG))
+    private static Config processConfig(String file) throws Exception {
+        return new Gson().fromJson(new Scanner(new File(file))
             .useDelimiter("\\A").next(), Config.class);
     }
 
     private static class Config {
-        public String submissionPrefix;
         public String[] collaborators;
         public String commitMsg;
-        public String repo;
+        public String repoSuffix;
     }
     public static void main(String... args) throws Exception {
         try {
-            Config config = processConfig();
+            Config config = processConfig(args[0]);
 
             System.out.print("Compiling files.....");
             if (!checkCompile(args)) {
@@ -106,11 +105,13 @@ public class Application {
             }
             System.out.println("...done");
 
-            StudentSubmission sub = authenticateAndCreate(config.repo);
+            StudentSubmission sub = authenticateAndCreate(config.repoSuffix);
             //TODO checkstyle option
             //TODO checksum/signature inside zip
+            
 
-            String[] fileNames = args; //change
+            //TODO: move this into forker, just push multiple files
+            //String[] fileNames = args; //change
             /*
             System.out.print("Zipping files.......");
             File submissionZip = Utils.zipFiles(config.submissionPrefix
@@ -120,12 +121,12 @@ public class Application {
             */
             for (String s : config.collaborators) sub.addCollab(s);
 
-            if (sub.pushFile(new File(args[0]), config.commitMsg)) {
+            if (sub.pushFile(new File(args[1]), config.commitMsg)) {
                 System.out.println("Code submitted successfully!");
                 System.out.println("Launching browser to view repo...");
                 Desktop.getDesktop().browse(new URI(
                     String.format("http://github.gatech.edu/%s/%s", sub.getUser(),
-                    config.repo)));
+                    sub.getRepo())));
             }
             else
                 System.out.println("Submission unsuccessful. :(");

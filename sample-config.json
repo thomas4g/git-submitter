@@ -1,0 +1,5 @@
+{
+    "collaborators": ["user1", "user2"],
+    "repoSuffix": "-assignment-name-date",
+    "commitMsg": "commit message yay"
+}
