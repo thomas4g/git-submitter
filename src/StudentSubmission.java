@@ -1,8 +1,14 @@
 import java.net.URL;
+import java.net.MalformedURLException;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import java.util.Scanner;
+import java.util.Map;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.Date;
 import java.util.Base64;
 
 import java.io.OutputStream;
@@ -23,11 +29,20 @@ public class StudentSubmission {
     private String user;
     private String base64Auth;
     private String repo;
-
+    private Map<String, String> headers;
+    
     public StudentSubmission(String u, String b, String r) {
+        this(u, b, r, null);
+    }
+
+    public StudentSubmission(String u, String b, String r, String c) {
         user = u;
         base64Auth = b;
         repo = r;
+        headers = new HashMap<>();
+        if (null != c)
+            headers.put("X-GitHub-OTP", c);
+
         try {
             createRepo();
         } catch (Exception e) {
@@ -40,21 +55,28 @@ public class StudentSubmission {
     }
     private int request(String path, String type, String content)
         throws Exception {
-        return doRequest(path, type, base64Auth, content, null);
+        return doRequest(path, type, base64Auth, content, null, headers, null);
     }
     private int request(String path, String type, String content,
         StringBuilder out) throws Exception {
-        return doRequest(path, type, base64Auth, content, out);
+        return doRequest(path, type, base64Auth, content, out, headers, null);
     }
 
     public static int doRequest(String path, String type, String auth,
-        String content, StringBuilder sb) throws Exception {
+        String content, StringBuilder sb, Map<String, String> headers, 
+        Map<String, List<String>> responseHeadersOut)
+        throws IOException, MalformedURLException {
 
         HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
             .openConnection();
         try {
             conn.setRequestMethod(type);
             conn.setRequestProperty("Authorization", "Basic " + auth);
+            if (null != headers) {
+                for (Entry<String, String> header : headers.entrySet()) {
+                    conn.setRequestProperty(header.getKey(), header.getValue());
+                }
+            }
 
             if (!type.equals("GET")) {
                 conn.setDoOutput(true);
@@ -70,6 +92,10 @@ public class StudentSubmission {
                 sb.append(new Scanner(conn.getInputStream()).useDelimiter("\\A")
                     .next());
             }
+            if (null != responseHeadersOut) {
+                responseHeadersOut.putAll(conn.getHeaderFields());
+            }
+
         } catch (IOException e) {
             e = e;
         }
@@ -77,8 +103,19 @@ public class StudentSubmission {
     }
 
     public static boolean testAuth(String base64)
-        throws Exception {
-        return doRequest("", "GET", base64, "", null) != 401;
+        throws TwoFactorAuthException, MalformedURLException, IOException {
+        Map<String, List<String>> headers = new HashMap<>();
+        int code = doRequest("", "GET", base64, "", null, null, headers);
+        if (null != headers.get("X-GitHub-OTP"))
+            throw new TwoFactorAuthException();
+        return code != 401;
+    }
+
+    public static boolean testTwoFactorAuth(String base64, String code) 
+        throws IOException, MalformedURLException {
+        Map<String, String> auth = new HashMap<>();
+        auth.put("X-GitHub-OTP", code);
+        return doRequest("", "GET", base64, "", null, auth, null) != 401;
     }
 
     private void createRepo() throws Exception {
@@ -119,6 +156,7 @@ public class StudentSubmission {
         byte[] fileContents = new byte[(int) f.length()];
         new DataInputStream(new FileInputStream(f)).readFully(fileContents);
 
+        message = new Date().toString() + " " + message;
         //TODO: json may not really be necessary? but add it? idk
         String json = String
             .format("{\"path\":\"%s\",\"message\":\"%s\",\"content\":\"%s\","
