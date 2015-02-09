@@ -2,6 +2,12 @@ import java.util.Scanner;
 import java.io.File;
 
 public class Forker {
+    private static int removeCollab(String owner, String user, String repo, String auth) throws Exception {
+        return StudentSubmission.doRequest(String.format(
+            "repos/%s/%s/collaborators/%s", owner, repo, user), "DELETE", auth,
+            "", null, null, null);
+    }
+
     private static int fork(String user, String repo, String auth) throws Exception {
         return StudentSubmission.doRequest(String.format(
             "repos/%s/%s/forks", user, repo), "POST", auth, 
@@ -21,6 +27,7 @@ public class Forker {
             String u = s.nextLine();
             System.out.println(u);
             System.out.println(fork(u, u + "-timedlab0.5", auth));
+            System.out.println(removeCollab(user, u, u + "-timedlab0.5", auth));
         }
     }
 }
