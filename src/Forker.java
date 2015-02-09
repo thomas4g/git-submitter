@@ -1,13 +1,27 @@
+import java.util.Scanner;
+import java.io.File;
+
 public class Forker {
-    private static void fork(String user, String repo, String auth) throws Exception {
-        StudentSubmission.doRequest(String.format(
+    private static int fork(String user, String repo, String auth) throws Exception {
+        return StudentSubmission.doRequest(String.format(
             "repos/%s/%s/forks", user, repo), "POST", auth, 
-            "{\"organization\": \"cs1331\"}", null);
+            "", null, null, null);
     }
-    public static void main(String[] users) throws Exception {
-        String auth = java.util.Base64.getEncoder().encodeToString(("tshields3:"
-            + new String(System.console().readPassword())).getBytes());
-        for(String u : users) fork(u, "test", auth);
+    public static void main(String[] args) throws Exception {
+        System.out.print("Username: ");
+        String user = System.console().readLine();
+        System.out.print("Password: ");
+        String password = new String(System.console().readPassword());
+        //yes the colon
+        String auth = java.util.Base64.getEncoder().encodeToString((
+            user + ":" + password).getBytes());
+        
+        Scanner s = new Scanner(new File(args[0]));
+        while(s.hasNext()) {
+            String u = s.nextLine();
+            System.out.println(u);
+            System.out.println(fork(u, u + "-timedlab0.5", auth));
+        }
     }
 }
 
