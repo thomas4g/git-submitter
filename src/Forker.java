@@ -22,12 +22,13 @@ public class Forker {
         String auth = java.util.Base64.getEncoder().encodeToString((
             user + ":" + password).getBytes());
         
-        Scanner s = new Scanner(new File(args[0]));
+        String repoSuffix = args[0];
+        Scanner s = new Scanner(new File(args[1]));
         while(s.hasNext()) {
             String u = s.nextLine();
             System.out.println(u);
-            System.out.println(fork(u, u + "-timedlab0.5", auth));
-            System.out.println(removeCollab(user, u, u + "-timedlab0.5", auth));
+            System.out.println(fork(u, u + repoSuffix, auth));
+            System.out.println(removeCollab(user, u, u + repoSuffix, auth));
         }
     }
 }
