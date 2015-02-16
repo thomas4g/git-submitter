@@ -14,7 +14,9 @@ import java.util.Base64;
 import java.io.OutputStream;
 import java.io.File;
 import java.io.DataInputStream;
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -64,7 +66,12 @@ public class StudentSubmission {
         StringBuilder out) throws Exception {
         return doRequest(path, type, base64Auth, content, out, headers, null);
     }
-
+   
+    private int request(String path, String type, String content,
+        Map<String, List<String>> respHeadersOut) throws Exception {
+        return doRequest(path, type, base64Auth, content, null, headers, respHeadersOut);
+    }
+ 
     public static int doRequest(String path, String type, String auth,
         String content, StringBuilder sb, Map<String, String> headers, 
         Map<String, List<String>> responseHeadersOut)
@@ -72,6 +79,8 @@ public class StudentSubmission {
 
         HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
             .openConnection();
+        conn.setInstanceFollowRedirects(false);
+
         try {
             conn.setRequestMethod(type);
             conn.setRequestProperty("Authorization", "Basic " + auth);
@@ -127,6 +136,47 @@ public class StudentSubmission {
             request("user/repos", "POST",
                 String.format("{\"name\":\"%s\",\"private\": true}", repo));
         }
+    }
+    
+    /**
+     * Downloads the repo into the specified zip file
+     * @param fileName the base name of the zip file to save into
+     */
+    public void download(String fileName, String owner) 
+        throws Exception {
+        Map<String, List<String>> headers = new HashMap<>();
+        int code = request(String.format(
+            "repos/%s/%s/zipball", owner, repo), "GET", "", headers);
+        if (code == 404) return;
+        try (
+            BufferedInputStream bis = new BufferedInputStream(new URL(headers.get("Location").get(0)).openStream());
+            FileOutputStream fos = new FileOutputStream(new File(fileName + ".zip"));
+        )
+        {
+            final byte data[] = new byte[1024];
+            int count;
+            while ((count = bis.read(data, 0, 1024)) != -1) {
+                fos.write(data, 0, count);
+            }
+        } catch (Exception e) {
+            throw new Exception("error downloading " + user + "'s submission", e);
+        } 
+   }
+    
+    /**
+     * Forks the repo using the StudentSubmissions' credentials
+     * E.g, you can use someone else's auth for the submission
+     * and then use it to fork
+     */
+    public int fork() throws Exception {
+        return request(String.format(
+            "repos/%s/%s/forks", user, repo), "POST", "");
+    }
+   
+    public boolean removeCollab(String collab) throws Exception {
+        return request(String.format(
+            "repos/%s/%s/collaborators/%s", user, repo, collab), "DELETE", "")
+            == 204;
     }
 
     /**
