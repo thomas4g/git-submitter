@@ -44,12 +44,6 @@ public class StudentSubmission {
         headers = new HashMap<>();
         if (null != c)
             headers.put("X-GitHub-OTP", c);
-
-        try {
-//            createRepo();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
     }
 
     public String getUser() {
@@ -130,7 +124,7 @@ public class StudentSubmission {
         return doRequest("", "GET", base64, "", null, auth, null) != 401;
     }
 
-    private void createRepo() throws Exception {
+    public void createRepo() throws Exception {
         if (request(String.format("repos/%s/%s", user, repo), "GET", "")
             == 404) {
             request("user/repos", "POST",
@@ -174,8 +168,10 @@ public class StudentSubmission {
     }
     
     public int fork(String org) throws Exception {
+        StringBuilder sb = new StringBuilder();
         return request(String.format(
-            "repos/%s/%s/forks?organization=", user, repo, org), "POST", "");
+            "repos/%s/%s/forks?organization=%s", user, repo, org),
+            "POST", "", sb);
     }
    
     public boolean removeCollab(String collab) throws Exception {

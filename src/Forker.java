@@ -31,13 +31,13 @@ public class Forker {
         Scanner s = new Scanner(new File(args[args.length > 2 ? 2 : 1]));
         while(s.hasNext()) {
             String u = s.nextLine();
-            System.out.println(u);
             StudentSubmission ss = 
-                new StudentSubmission(u, u + repoSuffix, auth);
+                new StudentSubmission(u, auth, u + repoSuffix);
+            System.out.println(u);
             System.out.println(args.length > 2 ? ss.fork(org) : ss.fork());
-            System.out.println(new StudentSubmission(
-                args.length > 2 ? org : user, u + repoSuffix, auth)
-                .removeCollab(u));
+            new StudentSubmission(
+                args.length > 2 ? org : user, auth, u + repoSuffix)
+                .removeCollab(u);
         }
     }
 }
