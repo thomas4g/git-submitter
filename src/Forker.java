@@ -2,34 +2,42 @@ import java.util.Scanner;
 import java.io.File;
 
 public class Forker {
-    private static int removeCollab(String owner, String user, String repo, String auth) throws Exception {
-        return StudentSubmission.doRequest(String.format(
-            "repos/%s/%s/collaborators/%s", owner, repo, user), "DELETE", auth,
-            "", null, null, null);
-    }
-
-    private static int fork(String user, String repo, String auth) throws Exception {
-        return StudentSubmission.doRequest(String.format(
-            "repos/%s/%s/forks", user, repo), "POST", auth, 
-            "", null, null, null);
-    }
     public static void main(String[] args) throws Exception {
-        System.out.print("Username: ");
-        String user = System.console().readLine();
-        System.out.print("Password: ");
-        String password = new String(System.console().readPassword());
-        //yes the colon
-        String auth = java.util.Base64.getEncoder().encodeToString((
-            user + ":" + password).getBytes());
-        
+        if (args.length == 0 || args[0].contains("-h")) {
+            System.out.println("Usage:");
+            System.out.println("java Forker repositorySuffix [organization] studentsFile");
+            System.out.println("e.g:");
+            System.out.println("java Forker -timedlab cs1331-timedlabs b1.txt");
+            System.exit(0);
+        }
+        String user = "";
+        String password = "";
+        String auth = "";
+        do {
+            if (!user.equals("")) {
+                System.out.println("Login failed, try again: ");
+            }
+            System.out.print("Username: ");
+            user = System.console().readLine();
+            System.out.print("Password: ");
+            password = new String(System.console().readPassword());
+            //yes the colon
+            auth = java.util.Base64.getEncoder().encodeToString((
+                user + ":" + password).getBytes());
+        } while (!StudentSubmission.testAuth(auth));
+
         String repoSuffix = args[0];
-        Scanner s = new Scanner(new File(args[1]));
+        String org = args[1];
+        Scanner s = new Scanner(new File(args[args.length > 2 ? 2 : 1]));
         while(s.hasNext()) {
             String u = s.nextLine();
             System.out.println(u);
-            System.out.println(fork(u, u + repoSuffix, auth));
-            System.out.println(removeCollab(user, u, u + repoSuffix, auth));
+            StudentSubmission ss = 
+                new StudentSubmission(u, u + repoSuffix, auth);
+            System.out.println(args.length > 2 ? ss.fork(org) : ss.fork());
+            System.out.println(new StudentSubmission(
+                args.length > 2 ? org : user, u + repoSuffix, auth)
+                .removeCollab(u));
         }
     }
 }
-

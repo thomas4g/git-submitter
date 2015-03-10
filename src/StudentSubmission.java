@@ -46,7 +46,7 @@ public class StudentSubmission {
             headers.put("X-GitHub-OTP", c);
 
         try {
-            createRepo();
+//            createRepo();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -142,12 +142,12 @@ public class StudentSubmission {
      * Downloads the repo into the specified zip file
      * @param fileName the base name of the zip file to save into
      */
-    public void download(String fileName, String owner) 
+    public void download(String fileName) 
         throws Exception {
         Map<String, List<String>> headers = new HashMap<>();
         int code = request(String.format(
-            "repos/%s/%s/zipball", owner, repo), "GET", "", headers);
-        if (code == 404) return;
+            "repos/%s/%s/zipball", user, repo), "GET", "", headers);
+        if (code == 404) throw new Exception("404 Not Found");;
         try (
             BufferedInputStream bis = new BufferedInputStream(new URL(headers.get("Location").get(0)).openStream());
             FileOutputStream fos = new FileOutputStream(new File(fileName + ".zip"));
@@ -171,6 +171,11 @@ public class StudentSubmission {
     public int fork() throws Exception {
         return request(String.format(
             "repos/%s/%s/forks", user, repo), "POST", "");
+    }
+    
+    public int fork(String org) throws Exception {
+        return request(String.format(
+            "repos/%s/%s/forks?organization=", user, repo, org), "POST", "");
     }
    
     public boolean removeCollab(String collab) throws Exception {
