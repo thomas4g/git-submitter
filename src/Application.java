@@ -51,7 +51,7 @@ public class Application {
             JPasswordField pf = new JPasswordField();
             int res = JOptionPane.showConfirmDialog(null, pf, "Password:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
             if (res == JOptionPane.OK_OPTION) {
-            password = new String(pf.getPassword());
+                password = new String(pf.getPassword());
             } else {
                 System.exit(0);
             }
@@ -64,7 +64,7 @@ public class Application {
             base64 = Base64.getEncoder().encodeToString((user + ":" + password)
                 .getBytes());
 
-            try { 
+            try {
                 if (!twoFactor)
                     success = StudentSubmission.testAuth(base64);
             } catch (TwoFactorAuthException ex) {
@@ -108,7 +108,7 @@ public class Application {
             StudentSubmission sub = authenticateAndCreate(config.repoSuffix);
             //TODO checkstyle option
             //TODO checksum/signature inside zip
-            
+
 
             //TODO: move this into forker, just push multiple files
             //String[] fileNames = args; //change

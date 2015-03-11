@@ -1,7 +1,11 @@
 import java.util.Scanner;
 import java.io.File;
+import javax.swing.JPasswordField;
+import javax.swing.JOptionPane;
 
 public class Forker {
+    private static Scanner scan = new Scanner(System.in);
+
     public static void main(String[] args) throws Exception {
         if (args.length == 0 || args[0].contains("-h")) {
             System.out.println("Usage:");
@@ -15,12 +19,18 @@ public class Forker {
         String auth = "";
         do {
             if (!user.equals("")) {
-                System.out.println("Login failed, try again: ");
+                System.err.println("Login failed, try again: ");
             }
-            System.out.print("Username: ");
-            user = System.console().readLine();
-            System.out.print("Password: ");
-            password = new String(System.console().readPassword());
+            System.err.print("Username: ");
+            user = scan.nextLine();
+            System.err.println("Password Popup Displayed");
+            JPasswordField pf = new JPasswordField();
+            int res = JOptionPane.showConfirmDialog(null, pf, "Password:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (res == JOptionPane.OK_OPTION) {
+                password = new String(pf.getPassword());
+            } else {
+                System.exit(0);
+            }
             //yes the colon
             auth = java.util.Base64.getEncoder().encodeToString((
                 user + ":" + password).getBytes());
@@ -31,7 +41,7 @@ public class Forker {
         Scanner s = new Scanner(new File(args[args.length > 2 ? 2 : 1]));
         while(s.hasNext()) {
             String u = s.nextLine();
-            StudentSubmission ss = 
+            StudentSubmission ss =
                 new StudentSubmission(u, auth, u + repoSuffix);
             System.out.println(u);
             System.out.println(args.length > 2 ? ss.fork(org) : ss.fork());
