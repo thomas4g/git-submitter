@@ -39,15 +39,26 @@ public class Forker {
         String repoSuffix = args[0];
         String org = args[1];
         Scanner s = new Scanner(new File(args[args.length > 2 ? 2 : 1]));
+        boolean delete = false;
+        for (String s2 : args) {
+            if (s2.equals("-d")) delete = true;
+        }
         while(s.hasNext()) {
             String u = s.nextLine();
-            StudentSubmission ss =
-                new StudentSubmission(u, auth, u + repoSuffix);
-            System.out.println(u);
-            System.out.println(args.length > 2 ? ss.fork(org) : ss.fork());
-            new StudentSubmission(
-                args.length > 2 ? org : user, auth, u + repoSuffix)
-                .removeCollab(u);
+            if (delete) {
+                StudentSubmission ss =
+                    new StudentSubmission(user, auth, u + repoSuffix);
+                System.out.println(u);
+                System.out.println(ss.delete());
+            } else {
+                StudentSubmission ss =
+                    new StudentSubmission(u, auth, u + repoSuffix);
+                System.out.println(u);
+                System.out.println(args.length > 2 ? ss.fork(org) : ss.fork());
+                new StudentSubmission(
+                    args.length > 2 ? org : user, auth, u + repoSuffix)
+                    .removeCollab(u);
+            }
         }
     }
 }
