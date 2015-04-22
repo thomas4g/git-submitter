@@ -18,7 +18,8 @@ public class Application {
     private static final String DEFAULT_CONFIG = "config.json";
 
     private static boolean checkCompile(String[] files) throws Exception {
-        List<String> args = Arrays.stream(files).filter(f -> f
+        String combined = Arrays.stream(files).collect(Collectors.joining(" "));
+        List<String> args = Arrays.stream(combined.split(" ")).filter(f -> f
             .substring(f.lastIndexOf('.')).equals(".java"))
             .collect(Collectors.toList());
         if (args.size() == 0) return true;
@@ -106,6 +107,7 @@ public class Application {
             System.out.println("...done");
 
             StudentSubmission sub = authenticateAndCreate(config.repoSuffix);
+            sub.createRepo();
             //TODO checkstyle option
             //TODO checksum/signature inside zip
             
@@ -120,8 +122,23 @@ public class Application {
             System.out.println("...done");
             */
             for (String s : config.collaborators) sub.addCollab(s);
+            
+            String fileString = "";
+            for(int i = 1; i < args.length; i++) {
+                fileString += args[i] + " ";
+            }
 
-            if (sub.pushFile(new File(args[1]), config.commitMsg)) {
+            String[] files = fileString.replaceAll("'", "").split(" ");
+            boolean success = 
+                Arrays.stream(files).map(String::trim).filter(f -> f.substring(f.lastIndexOf('.'))
+                    .equals(".java")).map((String s) -> {
+                        try {
+                            return sub.pushFile(new File(s), config.commitMsg);
+                        } catch(Exception e) {
+                            throw new RuntimeException(e.getMessage(), e);
+                        }
+                    }).reduce(true, (a,b) -> a && b);
+            if (success) {
                 System.out.println("Code submitted successfully!");
                 System.out.println("Launching browser to view repo...");
                 Desktop.getDesktop().browse(new URI(
