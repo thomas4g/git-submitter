@@ -32,7 +32,7 @@ public class StudentSubmission {
     private String base64Auth;
     private String repo;
     private Map<String, String> headers;
-    
+
     public StudentSubmission(String u, String b, String r) {
         this(u, b, r, null);
     }
@@ -60,14 +60,14 @@ public class StudentSubmission {
         StringBuilder out) throws Exception {
         return doRequest(path, type, base64Auth, content, out, headers, null);
     }
-   
+
     private int request(String path, String type, String content,
         Map<String, List<String>> respHeadersOut) throws Exception {
         return doRequest(path, type, base64Auth, content, null, headers, respHeadersOut);
     }
- 
+
     public static int doRequest(String path, String type, String auth,
-        String content, StringBuilder sb, Map<String, String> headers, 
+        String content, StringBuilder sb, Map<String, String> headers,
         Map<String, List<String>> responseHeadersOut)
         throws IOException, MalformedURLException {
 
@@ -117,7 +117,7 @@ public class StudentSubmission {
         return code != 401;
     }
 
-    public static boolean testTwoFactorAuth(String base64, String code) 
+    public static boolean testTwoFactorAuth(String base64, String code)
         throws IOException, MalformedURLException {
         Map<String, String> auth = new HashMap<>();
         auth.put("X-GitHub-OTP", code);
@@ -131,12 +131,12 @@ public class StudentSubmission {
                 String.format("{\"name\":\"%s\",\"private\": true}", repo));
         }
     }
-    
+
     /**
      * Downloads the repo into the specified zip file
      * @param fileName the base name of the zip file to save into
      */
-    public void download(String fileName) 
+    public void download(String fileName)
         throws Exception {
         Map<String, List<String>> headers = new HashMap<>();
         int code = request(String.format(
@@ -154,9 +154,9 @@ public class StudentSubmission {
             }
         } catch (Exception e) {
             throw new Exception("error downloading " + user + "'s submission", e);
-        } 
+        }
    }
-    
+
     /**
      * Forks the repo using the StudentSubmissions' credentials
      * E.g, you can use someone else's auth for the submission
@@ -166,14 +166,19 @@ public class StudentSubmission {
         return request(String.format(
             "repos/%s/%s/forks", user, repo), "POST", "");
     }
-    
+
     public int fork(String org) throws Exception {
         StringBuilder sb = new StringBuilder();
         return request(String.format(
             "repos/%s/%s/forks?organization=%s", user, repo, org),
             "POST", "", sb);
     }
-   
+
+    public int delete() throws Exception {
+        return request(String.format(
+            "repos/%s/%s", user, repo), "DELETE", "");
+    }
+
     public boolean removeCollab(String collab) throws Exception {
         return request(String.format(
             "repos/%s/%s/collaborators/%s", user, repo, collab), "DELETE", "")
