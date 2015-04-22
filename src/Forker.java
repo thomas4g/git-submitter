@@ -25,7 +25,8 @@ public class Forker {
             user = scan.nextLine();
             System.err.println("Password Popup Displayed");
             JPasswordField pf = new JPasswordField();
-            int res = JOptionPane.showConfirmDialog(null, pf, "Password:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            int res = JOptionPane.showConfirmDialog(null, pf, "Password:",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
             if (res == JOptionPane.OK_OPTION) {
                 password = new String(pf.getPassword());
             } else {
@@ -43,7 +44,7 @@ public class Forker {
         for (String s2 : args) {
             if (s2.equals("-d")) delete = true;
         }
-        while(s.hasNext()) {
+        while (s.hasNext()) {
             String u = s.nextLine();
             if (delete) {
                 StudentSubmission ss =

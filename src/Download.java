@@ -1,11 +1,5 @@
-import java.net.URL;
 import java.util.Scanner;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.BufferedInputStream;
 
 public class Download {
     public static void main(String[] args) throws Exception {
@@ -20,14 +14,15 @@ public class Download {
         //yes the colon
         String auth = java.util.Base64.getEncoder().encodeToString((
             user + ":" + password).getBytes());
-        
+
         String repoSuffix = args[0];
         String owner = args[1];
         Scanner s = new Scanner(new File(args[2]));
         while(s.hasNext()) {
             String u = s.nextLine();
             System.out.println(u);
-            StudentSubmission sub = new StudentSubmission(owner, auth,  u + repoSuffix);
+            StudentSubmission sub = new StudentSubmission(owner, auth,
+                u + repoSuffix);
             try {
                 sub.download(args[3] + "/" + u);
             } catch (Exception e) {

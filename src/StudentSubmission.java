@@ -63,7 +63,8 @@ public class StudentSubmission {
 
     private int request(String path, String type, String content,
         Map<String, List<String>> respHeadersOut) throws Exception {
-        return doRequest(path, type, base64Auth, content, null, headers, respHeadersOut);
+        return doRequest(path, type, base64Auth, content, null,
+            headers, respHeadersOut);
     }
 
     public static int doRequest(String path, String type, String auth,
@@ -138,24 +139,26 @@ public class StudentSubmission {
      */
     public void download(String fileName)
         throws Exception {
-        Map<String, List<String>> headers = new HashMap<>();
+        Map<String, List<String>> respHeaders = new HashMap<>();
         int code = request(String.format(
-            "repos/%s/%s/zipball", user, repo), "GET", "", headers);
-        if (code == 404) throw new Exception("404 Not Found");;
+            "repos/%s/%s/zipball", user, repo), "GET", "", respHeaders);
+        if (code == 404) throw new Exception("404 Not Found");
         try (
-            BufferedInputStream bis = new BufferedInputStream(new URL(headers.get("Location").get(0)).openStream());
-            FileOutputStream fos = new FileOutputStream(new File(fileName + ".zip"));
-        )
-        {
-            final byte data[] = new byte[1024];
+            BufferedInputStream bis = new BufferedInputStream(new URL(
+                respHeaders.get("Location").get(0)).openStream());
+            FileOutputStream fos = new FileOutputStream(
+                new File(fileName + ".zip"));
+        ) {
+            final byte[] data = new byte[1024];
             int count;
             while ((count = bis.read(data, 0, 1024)) != -1) {
                 fos.write(data, 0, count);
             }
         } catch (Exception e) {
-            throw new Exception("error downloading " + user + "'s submission", e);
+            throw new Exception("Encountered error while downloading "
+                + user + "'s submission", e);
         }
-   }
+    }
 
     /**
      * Forks the repo using the StudentSubmissions' credentials

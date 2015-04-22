@@ -48,9 +48,11 @@ public class Application {
                 System.out.println("      Login failed, please try again");
                 System.out.println(lines);
             }
-            user = JOptionPane.showInputDialog(null, "Username (e.g, gburdell3):");
+            user = JOptionPane.showInputDialog(null,
+                "Username (e.g, gburdell3):");
             JPasswordField pf = new JPasswordField();
-            int res = JOptionPane.showConfirmDialog(null, pf, "Password:", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            int res = JOptionPane.showConfirmDialog(null, pf, "Password:",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
             if (res == JOptionPane.OK_OPTION) {
                 password = new String(pf.getPassword());
             } else {
@@ -74,7 +76,7 @@ public class Application {
             }
 
             if (twoFactor) {
-                code = JOptionPane.showInputDialog(null, "Two-Factor Auth Code:");
+                code = JOptionPane.showInputDialog(null, "Two-Factor Code:");
                 success = StudentSubmission.testTwoFactorAuth(base64, code);
             }
         } while (!success);
@@ -94,6 +96,7 @@ public class Application {
         public String commitMsg;
         public String repoSuffix;
     }
+
     public static void main(String... args) throws Exception {
         try {
             Config config = processConfig(args[0]);
@@ -122,22 +125,23 @@ public class Application {
             System.out.println("...done");
             */
             for (String s : config.collaborators) sub.addCollab(s);
-            
+
             String fileString = "";
-            for(int i = 1; i < args.length; i++) {
+            for (int i = 1; i < args.length; i++) {
                 fileString += args[i] + " ";
             }
 
             String[] files = fileString.replaceAll("'", "").split(" ");
-            boolean success = 
-                Arrays.stream(files).map(String::trim).filter(f -> f.substring(f.lastIndexOf('.'))
+            boolean success =
+                Arrays.stream(files).map(String::trim).filter(f -> f
+                    .substring(f.lastIndexOf('.'))
                     .equals(".java")).map((String s) -> {
                         try {
                             return sub.pushFile(new File(s), config.commitMsg);
-                        } catch(Exception e) {
+                        } catch (Exception e) {
                             throw new RuntimeException(e.getMessage(), e);
                         }
-                    }).reduce(true, (a,b) -> a && b);
+                }).reduce(true, (a,b) -> a && b);
             if (success) {
                 System.out.println("Code submitted successfully!");
                 System.out.println("Launching browser to view repo...");
