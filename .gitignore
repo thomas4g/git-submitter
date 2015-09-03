@@ -1,5 +1,6 @@
 lib/
 bin/
+target/
 #java
 *.class
 #temp
@@ -12,3 +13,4 @@ bin/
 *.der
 *.pem
 submit.jar
+*~
