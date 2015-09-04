@@ -31,8 +31,8 @@ public class Application {
         return p.exitValue() == 0;
     }
 
-    private static StudentSubmission authenticateAndCreate(String repo)
-        throws Exception {
+    public static StudentSubmission authenticateAndCreate(String repoName,
+        boolean appendUserName) throws Exception {
         String user = "", password = "", base64 = "";
         String lines = "------------------------------------------";
         System.out.println();
@@ -76,7 +76,11 @@ public class Application {
         System.out.println("------------------------------------------");
         System.out.println("            Authenticated!");
         System.out.println("------------------------------------------");
-        return new StudentSubmission(user, base64, user + repo, code);
+
+        if (appendUserName) {
+            repoName += "-" + user;
+        }
+        return new StudentSubmission(user, base64, repoName, code);
     }
 
     private static Config processConfig(String file) throws Exception {
@@ -87,7 +91,8 @@ public class Application {
     private static class Config {
         public String[] collaborators;
         public String commitMsg;
-        public String repoSuffix;
+        public String repoName;
+        public boolean appendUsername;
     }
 
     public static void main(String... args) throws Exception {
@@ -102,7 +107,8 @@ public class Application {
             }
             System.out.println("...done");
 
-            StudentSubmission sub = authenticateAndCreate(config.repoSuffix);
+            StudentSubmission sub = authenticateAndCreate(config.repoName,
+                config.appendUsername);
             sub.createRepo();
 
             for (String collab : config.collaborators) {
