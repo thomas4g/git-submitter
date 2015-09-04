@@ -1,31 +1,31 @@
 package org.cs1331.gitsubmitter;
 
-import java.net.URL;
-import java.net.MalformedURLException;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import java.util.Scanner;
-import java.util.Map;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.HashMap;
-import java.util.Date;
-import java.util.Base64;
-
-import java.io.OutputStream;
-import java.io.File;
-import java.io.DataInputStream;
 import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Scanner;
+
+import com.google.gson.Gson;
 
 /**
  * Represents a student's authenticated connection to a particular
  * submission repository.
  * @author Thomas Shields
- * @version 2.0
  */
 public class StudentSubmission {
     private static final String BASE = "https://github.gatech.edu/api/v3/";
@@ -34,6 +34,7 @@ public class StudentSubmission {
     private String base64Auth;
     private String repo;
     private Map<String, String> headers;
+    private Gson gson;
 
     public StudentSubmission(String u, String b, String r) {
         this(u, b, r, null);
@@ -44,8 +45,10 @@ public class StudentSubmission {
         base64Auth = b;
         repo = r;
         headers = new HashMap<>();
-        if (null != c)
+        gson = new Gson();
+        if (null != c) {
             headers.put("X-GitHub-OTP", c);
+        }
     }
 
     public String getUser() {
@@ -69,10 +72,17 @@ public class StudentSubmission {
             headers, respHeadersOut);
     }
 
+    private int request(String path, String type, String content,
+        StringBuilder out, Map<String, List<String>> respHeadersOut)
+        throws Exception {
+        return doRequest(path, type, base64Auth, content, out,
+            headers, respHeadersOut);
+    }
+
     public static int doRequest(String path, String type, String auth,
-        String content, StringBuilder sb, Map<String, String> headers,
-        Map<String, List<String>> responseHeadersOut)
-        throws IOException, MalformedURLException {
+          String content, StringBuilder sb, Map<String, String> headers,
+          Map<String, List<String>> responseHeadersOut)
+          throws IOException, MalformedURLException {
 
         HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
             .openConnection();
@@ -115,8 +125,9 @@ public class StudentSubmission {
         throws TwoFactorAuthException, MalformedURLException, IOException {
         Map<String, List<String>> headers = new HashMap<>();
         int code = doRequest("", "GET", base64, "", null, null, headers);
-        if (null != headers.get("X-GitHub-OTP"))
+        if (null != headers.get("X-GitHub-OTP")) {
             throw new TwoFactorAuthException();
+        }
         return code != 401;
     }
 
@@ -131,7 +142,8 @@ public class StudentSubmission {
         if (request(String.format("repos/%s/%s", user, repo), "GET", "")
             == 404) {
             request("user/repos", "POST",
-                String.format("{\"name\":\"%s\",\"private\": true}", repo));
+                String.format("{\"name\":\"%s\",\"private\": true,"
+                    + "\"auto_init\": true}", repo));
         }
     }
 
@@ -144,7 +156,9 @@ public class StudentSubmission {
         Map<String, List<String>> respHeaders = new HashMap<>();
         int code = request(String.format(
             "repos/%s/%s/zipball", user, repo), "GET", "", respHeaders);
-        if (code == 404) throw new Exception("404 Not Found");
+        if (code == 404) {
+            throw new Exception("404 Not Found");
+        }
         try (
             BufferedInputStream bis = new BufferedInputStream(new URL(
                 respHeaders.get("Location").get(0)).openStream());
@@ -202,32 +216,99 @@ public class StudentSubmission {
         return request(path, "PUT", "") == 204;
     }
 
+    private TreeRoot createTree(String... files) throws IOException {
+        TreeRoot tree = new TreeRoot();
 
-    /**
-     * submits a file to the user's submission repo
-     * @param f     the file to submit
-     * @param message the commit message
-     * @return if succesful
-     */
-    public boolean pushFile(File f, String message) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        String sha = "";
-        if (request(String.format("repos/%s/%s/contents/%s",
-                user, repo, f.getName()), "GET", "", sb) != 404) {
-            sha = sb.toString().split("sha\":\"")[1].split("\"")[0];
-        }
-
-        byte[] fileContents = new byte[(int) f.length()];
-        new DataInputStream(new FileInputStream(f)).readFully(fileContents);
-
-        message = new Date().toString() + " " + message;
-        //TODO: json may not really be necessary? but add it? idk
-        String json = String
-            .format("{\"path\":\"%s\",\"message\":\"%s\",\"content\":\"%s\","
-                + "\"sha\": \"%s\"}", f.getName(), message, Base64.getEncoder()
-                    .encodeToString(fileContents), sha);
-        int resp = request(String.format("repos/%s/%s/contents/%s",
-            user, repo, f.getName()), "PUT", json);
-        return resp == 200 || resp == 201;
+        //TODO: handle subdirectories with mode 040000 and recursive calls
+        // to this method
+        tree.tree = Arrays.stream(files).map(File::new).map(f ->  {
+                byte[] fileContents = new byte[(int) f.length()];
+                try {
+                    new DataInputStream(new FileInputStream(f))
+                        .readFully(fileContents);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                return new Tree(f.getName(), "100644", "blob",
+                    new String(fileContents));
+            }).toArray(Tree[]::new);
+        return tree;
     }
+
+    private boolean checkResponse(int code) {
+        return code >= 200 && code < 300;
+    }
+
+    private SHAObject postTree(TreeRoot tree) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        request(String.format("repos/%s/%s/git/trees", user, repo),
+            "POST", gson.toJson(tree), sb);
+        return gson.fromJson(sb.toString(), SHAObject.class);
+    }
+
+    private SHAObject postCommit(Commit commit) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        request(String.format("repos/%s/%s/git/commits",
+            user, repo), "POST", gson.toJson(commit), sb);
+        return gson.fromJson(sb.toString(),
+            SHAObject.class);
+    }
+
+    private Ref getHeadRef() throws Exception {
+        StringBuilder sb = new StringBuilder();
+        boolean success = checkResponse(request(
+            String.format("repos/%s/%s/git/refs/heads/master", user, repo),
+            "GET", null, sb));
+        return gson.fromJson(sb.toString(), Ref.class);
+    }
+
+    public boolean pushFiles(String message, String... files) throws Exception {
+        SHAObject tree = postTree(createTree(files));
+        Ref head = getHeadRef();
+        SHAObject newRef = postCommit(new Commit(message, tree.sha,
+            head.object.sha));
+
+        return checkResponse(request(
+            String.format("repos/%s/%s/git/refs/heads/master", user, repo),
+            "PUT", gson.toJson(newRef)));
+    }
+
+    private class Ref {
+        public SHAObject object;
+    }
+
+    private class SHAObject {
+        public String sha;
+    }
+
+    private class TreeRoot {
+        public Tree[] tree;
+    }
+
+    private class Tree {
+        public String path;
+        public String mode;
+        public String type;
+        public String content;
+        public Tree(String path, String mode, String type, String content) {
+            this.path = path;
+            this.mode = mode;
+            this.type = type;
+            this.content = content;
+        }
+    }
+
+    private class Commit {
+        public String message;
+        public String tree;
+        public String[] parents;
+
+        public Commit(String message, String tree, String... parents) {
+            this.message = message;
+            this.tree = tree;
+            this.parents = parents;
+        }
+    }
+
+
 }
