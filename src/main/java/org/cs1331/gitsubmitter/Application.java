@@ -32,7 +32,7 @@ public class Application {
         return p.exitValue() == 0;
     }
 
-    private static StudentSubmission authenticateAndCreate(String repo)
+    public static StudentSubmission authenticateAndCreate(String repo)
         throws Exception {
         String user = "", password = "", base64 = "";
         String lines = "------------------------------------------";

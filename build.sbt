@@ -1,10 +1,9 @@
 lazy val root = (project in file(".")).
   settings(
-    name := "git-submitter",
+    name := "git-submitter-plugin",
     version := "1.0-SNAPSHOT",
-    autoScalaLibrary := false,
-    scalaVersion := "2.11.7",
-    crossScalaVersions := Seq("2.10.4", "2.12.0"),
+    sbtPlugin := true,
+    scalaVersion := "2.10.4",
     organization := "org.cs1331",
     publishMavenStyle := true,
     publishTo := Some(Resolver.sftp("CS 1331 Repository",
