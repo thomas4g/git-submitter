@@ -5,7 +5,7 @@
     <property name="lib" value="lib"/>
     <property name="jar" value="submit.jar"/>
     <property name="gson" value="${lib}/gson-2.3.1.jar"/>
-    <property name="main-class" value="Application"/>
+    <property name="main-class" value="org.cs1331.gitsubmitter.Application"/>
 
     <path id="classpath">
         <fileset dir="${lib}" includes="**/*.jar"/>
