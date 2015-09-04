@@ -1,3 +1,5 @@
+package org.cs1331.gitsubmitter;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.CipherOutputStream;
@@ -154,7 +156,7 @@ public class Utils {
 
     public static void main(String... args)
         throws IOException, InvalidKeyException {
-        
+
         if (args[0].equals("help") || args[0].equals("-h")) {
             System.out.println("Encrypt:\n java Bundler public_key File1 File2"
                 + " File3");
@@ -177,4 +179,3 @@ public class Utils {
 
 
 }
-

@@ -1,3 +1,5 @@
+package org.cs1331.gitsubmitter;
+
 import java.util.List;
 import java.util.Arrays;
 import java.util.Base64;

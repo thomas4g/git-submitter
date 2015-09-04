@@ -1,3 +1,5 @@
+package org.cs1331.gitsubmitter;
+
 import java.util.Scanner;
 import java.io.File;
 
@@ -32,4 +34,3 @@ public class Download {
         }
     }
 }
-
