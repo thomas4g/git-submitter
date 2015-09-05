@@ -9,22 +9,17 @@ public class Download {
             System.out.println("java Download repoSuffix owner students.txt");
             System.exit(0);
         }
-        System.out.print("Username: ");
-        String user = System.console().readLine();
-        System.out.print("Password: ");
-        String password = new String(System.console().readPassword());
-        //yes the colon
-        String auth = java.util.Base64.getEncoder().encodeToString((
-            user + ":" + password).getBytes());
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.create();
 
         String repoSuffix = args[0];
         String owner = args[1];
         Scanner s = new Scanner(new File(args[2]));
         while(s.hasNext()) {
+            // WTH is u?
             String u = s.nextLine();
             System.out.println(u);
-            StudentSubmission sub = new StudentSubmission(owner, auth,
-                u + repoSuffix);
+            StudentSubmission sub = new StudentSubmission(authenticatedUser,
+                                                          u + repoSuffix);
             try {
                 sub.download(args[3] + "/" + u);
             } catch (Exception e) {

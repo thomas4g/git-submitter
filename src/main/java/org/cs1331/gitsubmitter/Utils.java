@@ -1,35 +1,114 @@
 package org.cs1331.gitsubmitter;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.CipherInputStream;
-import javax.crypto.NoSuchPaddingException;
-
-import javax.crypto.spec.SecretKeySpec;
-
-import java.security.spec.X509EncodedKeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
-
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
-
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.DataInputStream;
 import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.io.IOException;
-
-import java.util.zip.ZipOutputStream;
-import java.util.zip.ZipEntry;
-
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.HttpsURLConnection;
 
 public class Utils {
+    private static final String BASE = "https://github.gatech.edu/api/v3/";
     private static final PrintStream DEBUG = System.out;
     private static final int AES_KEY_SIZE = 128;
+
+    public static File zipFiles(String name, File... files)
+        throws IOException {
+        File zip = new File(name);
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zip));
+
+        for (File f : files) {
+            out.putNextEntry(new ZipEntry(f.getName()));
+            byte[] data = readFile(f);
+            out.write(data, 0, data.length);
+            out.closeEntry();
+        }
+
+        out.close();
+        return zip;
+    }
+
+    public static int doRequest(String path, String type, String auth,
+          String content, StringBuilder sb, Map<String, String> headers,
+          Map<String, List<String>> responseHeadersOut)
+          throws IOException, MalformedURLException {
+
+        HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
+            .openConnection();
+        conn.setInstanceFollowRedirects(false);
+
+        try {
+            conn.setRequestMethod(type);
+            conn.setRequestProperty("Authorization", "Basic " + auth);
+            if (null != headers) {
+                for (Entry<String, String> header : headers.entrySet()) {
+                    conn.setRequestProperty(header.getKey(), header.getValue());
+                }
+            }
+
+            if (!type.equals("GET")) {
+                conn.setDoOutput(true);
+                if (content.length() > 0) {
+                    OutputStream os = conn.getOutputStream();
+                    os.write(content.getBytes());
+                    os.close();
+                } else {
+                    conn.setFixedLengthStreamingMode(0);
+                }
+            }
+            if (null != sb) {
+                sb.append(new Scanner(conn.getInputStream()).useDelimiter("\\A")
+                    .next());
+            }
+            if (null != responseHeadersOut) {
+                responseHeadersOut.putAll(conn.getHeaderFields());
+            }
+
+        } catch (IOException e) {
+            e = e;
+        }
+        return conn.getResponseCode();
+    }
+
+    public static boolean testAuth(String base64)
+        throws TwoFactorAuthException, MalformedURLException, IOException {
+        Map<String, List<String>> headers = new HashMap<>();
+        int code = doRequest("", "GET", base64, "", null, null, headers);
+        if (null != headers.get("X-GitHub-OTP")) {
+            throw new TwoFactorAuthException();
+        }
+        return code != 401;
+    }
+
+    public static boolean testTwoFactorAuth(String base64, String code)
+        throws IOException, MalformedURLException {
+        Map<String, String> auth = new HashMap<>();
+        auth.put("X-GitHub-OTP", code);
+        return doRequest("", "GET", base64, "", null, auth, null) != 401;
+    }
 
     private static byte[] readFile(String s) throws IOException {
         return readFile(new File(s));
@@ -135,23 +214,6 @@ public class Utils {
         }
         fos.close();
         cos.close();
-    }
-
-
-    public static File zipFiles(String name, File... files)
-        throws IOException {
-        File zip = new File(name);
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zip));
-
-        for (File f : files) {
-            out.putNextEntry(new ZipEntry(f.getName()));
-            byte[] data = readFile(f);
-            out.write(data, 0, data.length);
-            out.closeEntry();
-        }
-
-        out.close();
-        return zip;
     }
 
     public static void main(String... args)
