@@ -13,6 +13,7 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -216,37 +217,38 @@ public class StudentSubmission {
         return request(path, "PUT", "") == 204;
     }
 
-    private TreeRoot createTree(String... files) throws IOException {
-        TreeRoot tree = new TreeRoot();
+    private void expandFiles(File file, List<File> list) {
+        if (file.isDirectory()) {
+            Arrays.stream(file.listFiles()).forEach(f -> expandFiles(f, list));
+        } else {
+            list.add(file);
+        }
+    }
 
-        //TODO: handle subdirectories with mode 040000 and recursive calls
-        // to this method
-        tree.tree = Arrays.stream(files).map(File::new).map(f ->  {
-                byte[] fileContents = new byte[(int) f.length()];
-                try {
-                    new DataInputStream(new FileInputStream(f))
-                        .readFully(fileContents);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                return new Tree(f.getName(), "100644", "blob",
-                    new String(fileContents));
-            }).toArray(Tree[]::new);
-        return tree;
+
+    private SHAObject createTree(String baseTree, String... fileNames)
+            throws Exception {
+        TreeRoot tree = new TreeRoot();
+        tree.base_tree = baseTree;
+
+        List<File> files = new ArrayList<>();
+        Arrays.stream(fileNames).map(File::new)
+            .forEach(f -> expandFiles(f, files));
+
+        tree.tree = files.stream().filter(f -> !f.isDirectory()).map(Tree::new)
+            .toArray(Tree[]::new);
+
+        StringBuilder sb = new StringBuilder();
+        System.out.println(request(String.format("repos/%s/%s/git/trees", user,
+            repo), "POST", gson.toJson(tree), sb));
+        return gson.fromJson(sb.toString(), SHAObject.class);
     }
 
     private boolean checkResponse(int code) {
         return code >= 200 && code < 300;
     }
 
-    private SHAObject postTree(TreeRoot tree) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        request(String.format("repos/%s/%s/git/trees", user, repo),
-            "POST", gson.toJson(tree), sb);
-        return gson.fromJson(sb.toString(), SHAObject.class);
-    }
-
-    private SHAObject postCommit(Commit commit) throws Exception {
+    private SHAObject createCommit(Commit commit) throws Exception {
         StringBuilder sb = new StringBuilder();
         request(String.format("repos/%s/%s/git/commits",
             user, repo), "POST", gson.toJson(commit), sb);
@@ -262,10 +264,11 @@ public class StudentSubmission {
         return gson.fromJson(sb.toString(), Ref.class);
     }
 
-    public boolean pushFiles(String message, String... files) throws Exception {
-        SHAObject tree = postTree(createTree(files));
+    public boolean pushFiles(String message, String... fileNames)
+        throws Exception {
+        SHAObject tree = createTree(null, fileNames);
         Ref head = getHeadRef();
-        SHAObject newRef = postCommit(new Commit(message, tree.sha,
+        SHAObject newRef = createCommit(new Commit(message, tree.sha,
             head.object.sha));
 
         return checkResponse(request(
@@ -282,19 +285,29 @@ public class StudentSubmission {
     }
 
     private class TreeRoot {
+        public String base_tree;
         public Tree[] tree;
     }
 
     private class Tree {
+        public static final String FILE_MODE = "100644";
+        public static final String TYPE_FILE = "blob";
         public String path;
         public String mode;
         public String type;
         public String content;
-        public Tree(String path, String mode, String type, String content) {
-            this.path = path;
-            this.mode = mode;
-            this.type = type;
-            this.content = content;
+        public Tree(File f) {
+            path = f.getPath();
+            this.mode = FILE_MODE;
+            this.type = TYPE_FILE;
+            byte[] fileContents = new byte[(int) f.length()];
+            try {
+                new DataInputStream(new FileInputStream(f))
+                    .readFully(fileContents);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            content = new String(fileContents);
         }
     }
 

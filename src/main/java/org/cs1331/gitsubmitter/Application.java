@@ -19,8 +19,7 @@ public class Application {
     private static boolean checkCompile(String[] files) throws Exception {
         String combined = Arrays.stream(files).collect(Collectors.joining(" "));
         List<String> args = Arrays.stream(combined.split(" ")).filter(f -> f
-            .substring(f.lastIndexOf('.')).equals(".java"))
-            .collect(Collectors.toList());
+            .endsWith(".java")).collect(Collectors.toList());
         if (args.size() == 0) {
             return true;
         }
