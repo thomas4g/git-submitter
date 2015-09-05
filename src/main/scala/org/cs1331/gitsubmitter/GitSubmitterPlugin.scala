@@ -9,18 +9,13 @@ object GitSubmitterPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(commands += submitCommand)
 
   lazy val submitCommand = Command.command("submit") { (state: State) =>
-    val prismId = readLine("Enter your prism id: ")
-    val repoSuffix = s"-$prismId"
-    val submission = Application.authenticateAndCreate(repoSuffix)
+    val repoName = "hw-example"
+    val submission = Application.authenticateAndCreate(repoName, true)
     submission.createRepo()
     submission.addCollab("cs1331-fall2015")
     val commitMsg = s"Solution progress at ${LocalDateTime.now}"
 
-    // This line fails. I don't know how to use StudentSubmission.pushFile ...
-    // it's not like git-add, which you can just hand a directory. Maybe
-    // we need to list all the files in src/main/java and 'push' them one by one?
-    // That seems inelegant.
-    submission.pushFile(new File("src/main/java/"), commitMsg)
+    submission.pushFiles(commitMsg, "src/main/java/")
     println("Launching browser to view repo...")
     val repoBase = "http://github.gatech.edu"
     val repoUrl = s"$repoBase/${submission.getUser()}/${submission.getRepo()}"
