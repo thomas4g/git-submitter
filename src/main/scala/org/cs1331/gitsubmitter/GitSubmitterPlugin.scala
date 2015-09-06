@@ -9,17 +9,17 @@ object GitSubmitterPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(commands += submitCommand)
 
   lazy val submitCommand = Command.command("submit") { (state: State) =>
+    val extracted: Extracted = Project.extract(state)
+    import extracted._
+    val projectName = (Keys.name in currentRef get structure.data).get
+    val organization = (Keys.organization in currentRef get structure.data).get
     val authenticatedUser = AuthenticatedUser.create()
-    // This doesn't compile. How the bloody fucking hell do you get the
-    // value associated with a SettingKey?
-    // Why are the simplest things in SBT so fucking hard?
-
-    // Keys.name is the name of the SBT project for the assignment
-    val repoName = s"${Keys.name.value}-${authenticatedUser.name}"
+    val repoName = s"${projectName}-${authenticatedUser.name}"
     val submission = new StudentSubmission(authenticatedUser, repoName)
     submission.createRepo()
+
     // Keys.organization should match the GitHub org name for the current semester
-    submission.addCollab(Keys.organization.value)
+    submission.addCollab(organization)
     val commitMsg = s"Solution progress at ${LocalDateTime.now}"
     submission.pushFiles(commitMsg, "src/main/java/")
     println("Launching browser to view repo...")
