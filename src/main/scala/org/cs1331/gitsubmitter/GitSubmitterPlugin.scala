@@ -1,6 +1,7 @@
 package org.cs1331.gitsubmitter
 
 import java.time.LocalDateTime
+import java.io.UncheckedIOException
 import sbt._
 import Keys._
 
@@ -21,11 +22,23 @@ object GitSubmitterPlugin extends AutoPlugin {
     // Keys.organization should match the GitHub org name for the current semester
     submission.addCollab(organization)
     val commitMsg = s"Solution progress at ${LocalDateTime.now}"
-    submission.pushFiles(commitMsg, "src/main/java/")
-    println("Launching browser to view repo...")
-    val repoBase = "http://github.gatech.edu"
-    val repoUrl = s"$repoBase/${submission.getUser()}/${submission.getRepo()}"
-    java.awt.Desktop.getDesktop().browse(new java.net.URI(repoUrl))
-    state
+    var failed = false
+    try {
+      submission.pushFiles(commitMsg, "src/main/java/")
+    } catch {
+        case ioe: UncheckedIOException => {
+          println("Couldn't find src/main/java - did you forget to create it, or spell a folder wrong?")
+          failed = true
+        }
+    }
+    if (!failed) {
+      println("Launching browser to view repo...")
+      val repoBase = "http://github.gatech.edu"
+      val repoUrl = s"$repoBase/${submission.getUser()}/${submission.getRepo()}"
+      java.awt.Desktop.getDesktop().browse(new java.net.URI(repoUrl))
+      state
+    } else {
+      state.fail
+    }
   }
 }

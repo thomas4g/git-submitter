@@ -7,15 +7,18 @@ authenticates student against the GT github api, creates a repo under their name
 
 Building
 --------
-1. `ant jar`
+For developers of this tool, use `sbt publish` if you are trying to publish a new version and have been given repo access. Otherwise, use `sbt compile` to build.
 
-Running
+
+Usage
 -------
-`java -jar Submit.jar config.json <files to submit>` 
+To use the tool, you'll need a project that includes the SBT plugin. You can install the plugin by adding:
 
-Files/Folders/What Is it All
-----------------------------
+        resolvers += "CS 1331 Repository" at "http://repo.tweedbathrobe.com"
+        addSbtPlugin("org.cs1331" % "git-submitter-plugin" % "1.0-SNAPSHOT")
 
-`lib/` - external resources, for now just gson
+to your `project/plugins.sbt` or `project/buildinfo.sbt`
 
-`src/` - all da codes
+Next, make sure your project settings has  `name` and `organization` keys. Finally, add the `submit` command to your project with:
+
+        Keys.commands += org.cs1331.gitsubmitter.GitSubmitterPlugin.submitCommand
