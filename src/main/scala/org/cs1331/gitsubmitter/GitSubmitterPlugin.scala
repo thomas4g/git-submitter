@@ -22,16 +22,17 @@ object GitSubmitterPlugin extends AutoPlugin {
     // Keys.organization should match the GitHub org name for the current semester
     submission.addCollab(organization)
     val commitMsg = s"Solution progress at ${LocalDateTime.now}"
-    var failed = false
+    var pushSucceeded = true
     try {
       submission.pushFiles(commitMsg, "src/main/java/")
     } catch {
         case ioe: UncheckedIOException => {
-          println("Couldn't find src/main/java - did you forget to create it, or spell a folder wrong?")
-          failed = true
+          print("Couldn't find src/main/java/")
+          println(" - did you forget to create it, or spell a folder wrong?")
+          pushSucceeded = false
         }
     }
-    if (!failed) {
+    if (pushSucceeded) {
       println("Launching browser to view repo...")
       val repoBase = "http://github.gatech.edu"
       val repoUrl = s"$repoBase/${submission.getUser()}/${submission.getRepo()}"
