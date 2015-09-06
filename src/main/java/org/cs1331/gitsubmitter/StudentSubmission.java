@@ -1,5 +1,6 @@
 package org.cs1331.gitsubmitter;
 
+import com.google.gson.Gson;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -7,21 +8,16 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import javax.net.ssl.HttpsURLConnection;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Scanner;
-
-import com.google.gson.Gson;
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Represents a student's authenticated connection to a particular
@@ -37,107 +33,51 @@ public class StudentSubmission {
     private Map<String, String> headers;
     private Gson gson;
 
-    public StudentSubmission(String u, String b, String r) {
-        this(u, b, r, null);
-    }
-
-    public StudentSubmission(String u, String b, String r, String c) {
-        user = u;
-        base64Auth = b;
-        repo = r;
+    public StudentSubmission(AuthenticatedUser authenticatedUser,
+                             String repoName) {
+        user = authenticatedUser.name;
+        base64Auth = authenticatedUser.base64Auth;
+        repo = repoName;
         headers = new HashMap<>();
-        gson = new Gson();
-        if (null != c) {
-            headers.put("X-GitHub-OTP", c);
+        if (null != authenticatedUser.twoFactorCode) {
+            headers.put("X-GitHub-OTP", authenticatedUser.twoFactorCode);
         }
+        gson = new Gson();
     }
 
     public String getUser() {
         return user;
     }
+
     public String getRepo() {
         return repo;
     }
+
     private int request(String path, String type, String content)
-        throws Exception {
-        return doRequest(path, type, base64Auth, content, null, headers, null);
+            throws Exception {
+        return Utils.doRequest(path, type, base64Auth, content, null,
+                               headers, null);
     }
+
     private int request(String path, String type, String content,
         StringBuilder out) throws Exception {
-        return doRequest(path, type, base64Auth, content, out, headers, null);
+        return Utils.doRequest(path, type, base64Auth, content, out,
+                               headers, null);
     }
 
     private int request(String path, String type, String content,
         Map<String, List<String>> respHeadersOut) throws Exception {
-        return doRequest(path, type, base64Auth, content, null,
-            headers, respHeadersOut);
+        return Utils.doRequest(path, type, base64Auth, content, null,
+                               headers, respHeadersOut);
     }
 
     private int request(String path, String type, String content,
         StringBuilder out, Map<String, List<String>> respHeadersOut)
         throws Exception {
-        return doRequest(path, type, base64Auth, content, out,
-            headers, respHeadersOut);
+        return Utils.doRequest(path, type, base64Auth, content, out,
+                               headers, respHeadersOut);
     }
 
-    public static int doRequest(String path, String type, String auth,
-          String content, StringBuilder sb, Map<String, String> headers,
-          Map<String, List<String>> responseHeadersOut)
-          throws IOException, MalformedURLException {
-
-        HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
-            .openConnection();
-        conn.setInstanceFollowRedirects(false);
-
-        try {
-            conn.setRequestMethod(type);
-            conn.setRequestProperty("Authorization", "Basic " + auth);
-            if (null != headers) {
-                for (Entry<String, String> header : headers.entrySet()) {
-                    conn.setRequestProperty(header.getKey(), header.getValue());
-                }
-            }
-
-            if (!type.equals("GET")) {
-                conn.setDoOutput(true);
-                if (content.length() > 0) {
-                    OutputStream os = conn.getOutputStream();
-                    os.write(content.getBytes());
-                    os.close();
-                } else {
-                    conn.setFixedLengthStreamingMode(0);
-                }
-            }
-            if (null != sb) {
-                sb.append(new Scanner(conn.getInputStream()).useDelimiter("\\A")
-                    .next());
-            }
-            if (null != responseHeadersOut) {
-                responseHeadersOut.putAll(conn.getHeaderFields());
-            }
-
-        } catch (IOException e) {
-            e = e;
-        }
-        return conn.getResponseCode();
-    }
-
-    public static boolean testAuth(String base64)
-        throws TwoFactorAuthException, MalformedURLException, IOException {
-        Map<String, List<String>> headers = new HashMap<>();
-        int code = doRequest("", "GET", base64, "", null, null, headers);
-        if (null != headers.get("X-GitHub-OTP")) {
-            throw new TwoFactorAuthException();
-        }
-        return code != 401;
-    }
-
-    public static boolean testTwoFactorAuth(String base64, String code)
-        throws IOException, MalformedURLException {
-        Map<String, String> auth = new HashMap<>();
-        auth.put("X-GitHub-OTP", code);
-        return doRequest("", "GET", base64, "", null, auth, null) != 401;
-    }
 
     public void createRepo() throws Exception {
         if (request(String.format("repos/%s/%s", user, repo), "GET", "")
@@ -224,7 +164,6 @@ public class StudentSubmission {
             list.add(file);
         }
     }
-
 
     private SHAObject createTree(String baseTree, String... fileNames)
             throws Exception {
