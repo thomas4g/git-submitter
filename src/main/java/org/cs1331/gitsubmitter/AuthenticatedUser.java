@@ -1,6 +1,7 @@
 package org.cs1331.gitsubmitter;
 
 import java.util.Base64;
+import java.util.Scanner;
 
 public class AuthenticatedUser {
 
@@ -31,6 +32,18 @@ public class AuthenticatedUser {
         boolean success = false;
         boolean twoFactor = false;
         String twoFactorCode = null;
+        Scanner keyboard = new Scanner(System.in);
+        Thread maskPassword = new Thread(() -> {
+            while (true) {
+                System.out.print("\010\040");
+                try {
+                    Thread.currentThread().sleep(1);
+                } catch(InterruptedException ie) {
+                    ie.printStackTrace();
+                }
+            }
+        });
+
         do {
             if (base64Auth.length() > 0) {
                 System.out.println(lines);
@@ -39,9 +52,13 @@ public class AuthenticatedUser {
             }
 
             System.out.print("\tUsername: ");
-            user = System.console().readLine();
+            System.out.flush();
+            user = keyboard.nextLine();
             System.out.print("\tPassword: ");
-            password = new String(System.console().readPassword());
+            System.out.flush();
+            maskPassword.start();
+            password = keyboard.nextLine();
+            maskPassword.stop();
 
             base64Auth = Base64.getEncoder().encodeToString((user + ":" + password)
                 .getBytes());
@@ -57,7 +74,7 @@ public class AuthenticatedUser {
 
             if (twoFactor) {
                 System.out.println("\tTwo-Factor Code:");
-                twoFactorCode = System.console().readLine();
+                twoFactorCode = keyboard.nextLine();
                 success = Utils.testTwoFactorAuth(base64Auth, twoFactorCode);
             }
         } while (!success);
