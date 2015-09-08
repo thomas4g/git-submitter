@@ -166,24 +166,6 @@ public class StudentSubmission {
         }
     }
 
-    private SHAObject createTree(String baseTree, String... fileNames)
-            throws Exception {
-        TreeRoot tree = new TreeRoot();
-        tree.base_tree = baseTree;
-
-        List<File> files = new ArrayList<>();
-        Arrays.stream(fileNames).map(File::new)
-            .forEach(f -> expandFiles(f, files));
-
-        tree.tree = files.stream().filter(f -> !f.isDirectory()).map(Tree::new)
-            .toArray(Tree[]::new);
-
-        StringBuilder sb = new StringBuilder();
-        System.out.println(request(String.format("repos/%s/%s/git/trees", user,
-            repo), "POST", gson.toJson(tree), sb));
-        return gson.fromJson(sb.toString(), SHAObject.class);
-    }
-
     private boolean checkResponse(int code) {
         return code >= 200 && code < 300;
     }
@@ -214,6 +196,24 @@ public class StudentSubmission {
         return checkResponse(request(
             String.format("repos/%s/%s/git/refs/heads/master", user, repo),
             "PUT", gson.toJson(newRef)));
+    }
+
+    private SHAObject createTree(String baseTree, String... fileNames)
+            throws Exception {
+        TreeRoot tree = new TreeRoot();
+        tree.base_tree = baseTree;
+
+        List<File> files = new ArrayList<>();
+        Arrays.stream(fileNames).map(File::new)
+            .forEach(f -> expandFiles(f, files));
+
+        tree.tree = files.stream().filter(f -> !f.isDirectory()).map(Tree::new)
+            .toArray(Tree[]::new);
+
+        StringBuilder sb = new StringBuilder();
+        System.out.println(request(String.format("repos/%s/%s/git/trees", user,
+            repo), "POST", gson.toJson(tree), sb));
+        return gson.fromJson(sb.toString(), SHAObject.class);
     }
 
     private class Ref {
