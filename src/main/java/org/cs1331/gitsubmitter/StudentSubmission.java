@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -186,8 +187,8 @@ public class StudentSubmission {
         return gson.fromJson(sb.toString(), Ref.class);
     }
 
-    public boolean pushFiles(String message, String... fileNames)
-        throws Exception {
+    public boolean pushFiles(String message, String ... fileNames)
+            throws Exception {
         SHAObject tree = createTree(null, fileNames);
         Ref head = getHeadRef();
         SHAObject newRef = createCommit(new Commit(message, tree.sha,
