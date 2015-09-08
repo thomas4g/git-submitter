@@ -33,16 +33,6 @@ public class AuthenticatedUser {
         boolean twoFactor = false;
         String twoFactorCode = null;
         Scanner keyboard = new Scanner(System.in);
-        Thread maskPassword = new Thread(() -> {
-            while (true) {
-                System.out.print("\010\040");
-                try {
-                    Thread.currentThread().sleep(1);
-                } catch(InterruptedException ie) {
-                    ie.printStackTrace();
-                }
-            }
-        });
 
         do {
             if (base64Auth.length() > 0) {
@@ -53,12 +43,10 @@ public class AuthenticatedUser {
 
             System.out.print("\tUsername: ");
             System.out.flush();
-            user = keyboard.nextLine();
+            user = System.console().readLine();
             System.out.print("\tPassword: ");
             System.out.flush();
-            maskPassword.start();
-            password = keyboard.nextLine();
-            maskPassword.stop();
+            password = new String(System.console().readPassword());
 
             base64Auth = Base64.getEncoder().encodeToString((user + ":" + password)
                 .getBytes());
@@ -74,7 +62,7 @@ public class AuthenticatedUser {
 
             if (twoFactor) {
                 System.out.println("\tTwo-Factor Code:");
-                twoFactorCode = keyboard.nextLine();
+                twoFactorCode = System.console().readLine();
                 success = Utils.testTwoFactorAuth(base64Auth, twoFactorCode);
             }
         } while (!success);
