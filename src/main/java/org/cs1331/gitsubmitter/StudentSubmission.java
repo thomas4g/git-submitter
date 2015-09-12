@@ -238,7 +238,7 @@ public class StudentSubmission {
         public String type;
         public String content;
         public Tree(File f) {
-            path = f.getPath();
+            path = f.getPath().replace(File.separatorChar, '/');
             this.mode = FILE_MODE;
             this.type = TYPE_FILE;
             byte[] fileContents = new byte[(int) f.length()];
