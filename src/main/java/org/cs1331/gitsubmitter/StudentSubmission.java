@@ -212,8 +212,8 @@ public class StudentSubmission {
             .toArray(Tree[]::new);
 
         StringBuilder sb = new StringBuilder();
-        System.out.println(request(String.format("repos/%s/%s/git/trees", user,
-            repo), "POST", gson.toJson(tree), sb));
+        request(String.format("repos/%s/%s/git/trees", user,
+            repo), "POST", gson.toJson(tree), sb);
         return gson.fromJson(sb.toString(), SHAObject.class);
     }
 
