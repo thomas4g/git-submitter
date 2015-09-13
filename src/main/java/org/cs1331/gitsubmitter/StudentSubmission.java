@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -265,7 +266,7 @@ public class StudentSubmission {
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-            content = new String(fileContents);
+            content = new String(fileContents, Charset.forName("UTF-8"));
         }
 
         public String toString() {
