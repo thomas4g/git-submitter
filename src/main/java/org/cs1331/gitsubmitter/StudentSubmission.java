@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -27,6 +28,9 @@ import javax.net.ssl.HttpsURLConnection;
  * @author Thomas Shields
  */
 public class StudentSubmission {
+    private static final Logger logger = Logger.getLogger(
+            StudentSubmission.class.getName());
+
     private static final String BASE = "https://github.gatech.edu/api/v3/";
 
     private String user;
@@ -34,6 +38,7 @@ public class StudentSubmission {
     private String repo;
     private Map<String, String> headers;
     private Gson gson;
+
 
     public StudentSubmission(AuthenticatedUser authenticatedUser,
                              String repoName) {
@@ -82,11 +87,15 @@ public class StudentSubmission {
 
 
     public void createRepo() throws Exception {
+        logger.info("Checking if repo exists...");
         if (request(String.format("repos/%s/%s", user, repo), "GET", "")
             == 404) {
+            logger.info("Creating repo...");
             request("user/repos", "POST",
                 String.format("{\"name\":\"%s\",\"private\": true,"
                     + "\"auto_init\": true}", repo));
+        } else {
+            logger.info("Repo already exists.");
         }
     }
 
@@ -154,6 +163,7 @@ public class StudentSubmission {
      * @return whether not the operation succeeded
      */
     public boolean addCollab(String collab) throws Exception {
+        logger.info("Adding collaborator: " + collab);
         String path = String.format("repos/%s/%s/collaborators/%s", user, repo,
             collab);
         return request(path, "PUT", "") == 204;
@@ -172,6 +182,7 @@ public class StudentSubmission {
     }
 
     private SHAObject createCommit(Commit commit) throws Exception {
+        logger.info("Creating commit...");
         StringBuilder sb = new StringBuilder();
         request(String.format("repos/%s/%s/git/commits",
             user, repo), "POST", gson.toJson(commit), sb);
@@ -180,10 +191,10 @@ public class StudentSubmission {
     }
 
     private Ref getHeadRef() throws Exception {
+        logger.info("Getting head reference...");
         StringBuilder sb = new StringBuilder();
-        boolean success = checkResponse(request(
-            String.format("repos/%s/%s/git/refs/heads/master", user, repo),
-            "GET", null, sb));
+        request(String.format("repos/%s/%s/git/refs/heads/master", user, repo),
+            "GET", null, sb);
         return gson.fromJson(sb.toString(), Ref.class);
     }
 
@@ -193,7 +204,7 @@ public class StudentSubmission {
         Ref head = getHeadRef();
         SHAObject newRef = createCommit(new Commit(message, tree.sha,
             head.object.sha));
-
+        logger.info("Updating head reference with new commit...");
         return checkResponse(request(
             String.format("repos/%s/%s/git/refs/heads/master", user, repo),
             "PUT", gson.toJson(newRef)));
@@ -201,6 +212,7 @@ public class StudentSubmission {
 
     private SHAObject createTree(String baseTree, String... fileNames)
             throws Exception {
+        logger.info("Creating tree...");
         TreeRoot tree = new TreeRoot();
         tree.base_tree = baseTree;
 
@@ -210,7 +222,12 @@ public class StudentSubmission {
 
         tree.tree = files.stream().filter(f -> !f.isDirectory()).map(Tree::new)
             .toArray(Tree[]::new);
-
+        
+        logger.info("Tree:");
+        logger.info(Arrays.toString(tree.tree));
+        String json = gson.toJson(tree);
+        logger.info("Encoded tree JSON:");
+        logger.info(json);
         StringBuilder sb = new StringBuilder();
         request(String.format("repos/%s/%s/git/trees", user,
             repo), "POST", gson.toJson(tree), sb);
@@ -249,6 +266,10 @@ public class StudentSubmission {
                 throw new UncheckedIOException(e);
             }
             content = new String(fileContents);
+        }
+
+        public String toString() {
+            return path;
         }
     }
 
