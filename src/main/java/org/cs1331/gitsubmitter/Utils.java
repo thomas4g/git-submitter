@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidKeyException;
@@ -225,6 +227,33 @@ public class Utils {
         }
         fos.close();
         cos.close();
+    }
+
+    /**
+     * Attempts to retrieve a unique identifier for this computer.
+     * The MAC address of the currently active network interface is used
+     * as this identifier. If the MAC address is unable to be retrieved,
+     * "000000000000" is returned.
+     * 
+     * @return A unique identifier of this computer
+     */
+    public static String getIdentifier() {
+        byte[] id;
+        try {
+            id = NetworkInterface
+                .getByInetAddress(InetAddress.getLocalHost())
+                .getHardwareAddress();
+        } catch (IOException e) {
+            id = null;
+            // id will already be null if an exception happens, just being safe
+        }
+        if (null == id) {
+            id = new byte[]{(byte)0, (byte)0, (byte)0,
+                    (byte)0, (byte)0, (byte)0};
+        }
+        return String.format("%02X%02X%02X%02X%02X%02X",
+                id[0], id[1], id[2], id[3], id[4], id[5]);
+        }
     }
 
     public static void main(String... args)

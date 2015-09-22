@@ -201,6 +201,7 @@ public class StudentSubmission {
 
     public boolean pushFiles(String message, String ... fileNames)
             throws Exception {
+        message = message + "\n\nID: " + Utils.getIdentifier();
         SHAObject tree = createTree(null, fileNames);
         Ref head = getHeadRef();
         SHAObject newRef = createCommit(new Commit(message, tree.sha,
@@ -223,7 +224,7 @@ public class StudentSubmission {
 
         tree.tree = files.stream().filter(f -> !f.isDirectory()).map(Tree::new)
             .toArray(Tree[]::new);
-        
+
         logger.info("Tree:");
         logger.info(Arrays.toString(tree.tree));
         String json = gson.toJson(tree);
