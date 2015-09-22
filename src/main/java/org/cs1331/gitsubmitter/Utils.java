@@ -253,7 +253,6 @@ public class Utils {
         }
         return String.format("%02X%02X%02X%02X%02X%02X",
                 id[0], id[1], id[2], id[3], id[4], id[5]);
-        }
     }
 
     public static void main(String... args)
