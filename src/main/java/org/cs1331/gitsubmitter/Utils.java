@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.crypto.Cipher;
@@ -32,6 +34,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class Utils {
     private static final String BASE = "https://github.gatech.edu/api/v3/";
+    private static final Logger logger = Logger.getLogger(
+            Utils.class.getName());
     private static final PrintStream DEBUG = System.out;
     private static final int AES_KEY_SIZE = 128;
 
@@ -79,16 +83,23 @@ public class Utils {
                     conn.setFixedLengthStreamingMode(0);
                 }
             }
-            if (null != sb) {
-                sb.append(new Scanner(conn.getInputStream()).useDelimiter("\\A")
-                    .next());
+            if (null == sb) {
+                sb = new StringBuilder();
             }
+            if (conn.getInputStream().available() > 0) {
+                sb.append(new Scanner(conn.getInputStream()).useDelimiter("\\A")
+                .next());
+            }
+            logger.info("Response code: " + conn.getResponseCode()); 
+            logger.info("Response data: ");
+            logger.info(sb.toString());
+
             if (null != responseHeadersOut) {
                 responseHeadersOut.putAll(conn.getHeaderFields());
             }
 
         } catch (IOException e) {
-            e = e;
+            logger.log(Level.SEVERE, e.getMessage(), e);
         }
         return conn.getResponseCode();
     }

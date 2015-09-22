@@ -1,6 +1,7 @@
 package org.cs1331.gitsubmitter;
 
 import java.util.Base64;
+import java.util.Scanner;
 
 public class AuthenticatedUser {
 
@@ -31,6 +32,8 @@ public class AuthenticatedUser {
         boolean success = false;
         boolean twoFactor = false;
         String twoFactorCode = null;
+        Scanner keyboard = new Scanner(System.in);
+
         do {
             if (base64Auth.length() > 0) {
                 System.out.println(lines);
@@ -39,8 +42,10 @@ public class AuthenticatedUser {
             }
 
             System.out.print("\tUsername: ");
+            System.out.flush();
             user = System.console().readLine();
             System.out.print("\tPassword: ");
+            System.out.flush();
             password = new String(System.console().readPassword());
 
             base64Auth = Base64.getEncoder().encodeToString((user + ":" + password)
