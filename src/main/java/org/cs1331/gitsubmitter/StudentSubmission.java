@@ -182,6 +182,17 @@ public class StudentSubmission {
         return code >= 200 && code < 300;
     }
 
+    /**
+     * Appends the identifer of the submitting computer to the body
+     * of the given commit message.
+     *
+     * @param message the commit message to append to
+     * @return the commit message with the identifer appended
+     */
+    private String appendIdentifier(String message) {
+        return message + "\n\nID: " + Utils.getIdentifier();
+    }
+
     private SHAObject createCommit(Commit commit) throws Exception {
         logger.info("Creating commit...");
         StringBuilder sb = new StringBuilder();
@@ -201,7 +212,7 @@ public class StudentSubmission {
 
     public boolean pushFiles(String message, String ... fileNames)
             throws Exception {
-        message = message + "\n\nID: " + Utils.getIdentifier();
+        message = appendIdentifier(message);
         SHAObject tree = createTree(null, fileNames);
         Ref head = getHeadRef();
         SHAObject newRef = createCommit(new Commit(message, tree.sha,
