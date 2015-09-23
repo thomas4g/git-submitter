@@ -238,18 +238,22 @@ public class Utils {
      * @return A unique identifier of this computer
      */
     public static String getIdentifier() {
-        byte[] id;
+        byte[] id = null;
         try {
             id = NetworkInterface
                 .getByInetAddress(InetAddress.getLocalHost())
                 .getHardwareAddress();
+
+            if (null == id) {
+                logger.info("A MAC address could not be found for this "
+                        + "computer or permission was denied.");
+                id = new byte[]{0, 0, 0, 0, 0, 0};
+            }
         } catch (IOException e) {
-            id = null;
-            // id will already be null if an exception happens, just being safe
-        }
-        if (null == id) {
-            id = new byte[]{(byte)0, (byte)0, (byte)0,
-                    (byte)0, (byte)0, (byte)0};
+            logger.log(Level.INFO, "An exception was encountered while "
+                    + "attempting to find the MAC address of this computer: ",
+                    e);
+            id = new byte[]{0, 0, 0, 0, 0, 0};
         }
         return String.format("%02X%02X%02X%02X%02X%02X",
                 id[0], id[1], id[2], id[3], id[4], id[5]);
