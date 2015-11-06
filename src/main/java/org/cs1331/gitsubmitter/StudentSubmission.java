@@ -173,8 +173,10 @@ public class StudentSubmission {
     private void expandFiles(File file, List<File> list) {
         if (file.isDirectory()) {
             Arrays.stream(file.listFiles()).forEach(f -> expandFiles(f, list));
-        } else {
+        } else if (file.getName().endsWith(".java")) {
             list.add(file);
+        } else {
+            logger.info("Skipping file " + file.getName());
         }
     }
 

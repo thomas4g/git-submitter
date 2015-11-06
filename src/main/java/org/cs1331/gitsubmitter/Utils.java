@@ -249,7 +249,7 @@ public class Utils {
                         + "computer or permission was denied.");
                 id = new byte[]{0, 0, 0, 0, 0, 0};
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.log(Level.INFO, "An exception was encountered while "
                     + "attempting to find the MAC address of this computer: ",
                     e);
