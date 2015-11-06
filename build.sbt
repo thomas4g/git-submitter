@@ -2,7 +2,7 @@ lazy val root = (project in file(".")).
   settings(
     name := "git-submitter-plugin",
     organization := "org.cs1331",
-    version := "0.6-SNAPSHOT",
+    version := "0.7-SNAPSHOT",
     sbtPlugin := true,
     scalaVersion := "2.10.4",
     publishMavenStyle := true,
