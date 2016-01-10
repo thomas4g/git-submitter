@@ -1,16 +1,26 @@
+# Build Outputs
 lib/
 bin/
 target/
-#java
+build/
+
+# Java Binaries
 *.class
-#temp
+*.jar
+
+# Temporary Files
 *.swp
 *.swo
 *.swn
-#packages
+*~
+
+# Archives
 *.zip
-#keys
+*.tar.gz
+
+# Keys
 *.der
 *.pem
-submit.jar
-*~
+
+# Build System Files
+.gradle/
