@@ -56,19 +56,20 @@ public class Application {
 
             String repoName = line.getOptionValue(REPO_NAME_OPT);
 
-            // Currently Not Used
             String username = null;
             if (line.hasOption(USERNAME_OPT)) {
                 username = line.getOptionValue(USERNAME_OPT);
             }
 
-            // Currently Not Used
-            char[] password = null;
+            String password = null;
             if (line.hasOption(PASSWORD_OPT)) {
-                password = line.getOptionValue(PASSWORD_OPT).toCharArray();
+                password = line.getOptionValue(PASSWORD_OPT);
             }
 
-            AuthenticatedUser user = AuthenticatedUser.create();
+            AuthenticatedUser user = username != null
+                ? AuthenticatedUser.create(username, password)
+                : AuthenticatedUser.create();
+
             StudentSubmission sub = new StudentSubmission(user, repoName);
             sub.createRepo();
 
@@ -152,8 +153,8 @@ public class Application {
                 .optionalArg(false)
                 .argName("user1 user2 user3...")
                 .required(false)
-                .desc("add other users a collaborators to the repo with fork "
-                    + "privedges")
+                .desc("add other users as collaborators to the repo with fork "
+                    + "privileges")
                 .build());
         options.addOption(Option.builder(OVERRIDE_FILES_OPT)
                 .longOpt("files")
@@ -175,9 +176,8 @@ public class Application {
                 .hasArg(true)
                 .optionalArg(false)
                 .argName("repository")
-                .required(false)
-                .desc("the name of the repository to submit files to, if not "
-                    + "provided, this value will be prompted for")
+                .required()
+                .desc("the name of the repository to submit files to")
                 .build());
         options.addOption(Option.builder(USERNAME_OPT)
                 .longOpt("username")
