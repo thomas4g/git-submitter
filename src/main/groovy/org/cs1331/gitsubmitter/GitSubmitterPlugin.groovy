@@ -5,13 +5,15 @@ import org.gradle.api.Plugin
 
 class GitSubmitterPlugin implements Plugin<Project> {
     void apply(Project project) {
-        project.extensions.create("submission", SubmitterPluginExtension)
+        project.extensions.create("submission", GitSubmitterPluginExtension)
         project.task('submit') << {
             def username = System.console().readLine('\nUsername (e.g, gburdell3): ');
             def password = System.console().readPassword('Password: ');
             List<String> args = []
-            args << p(Application.ADD_COLLABS_OPT)
-            args.addAll(project.submission.collabs)
+            if (project.submission.collabs.size() > 0) {
+                args << p(Application.ADD_COLLABS_OPT)
+                args.addAll(project.submission.collabs)
+            }
 
             args << p(Application.SHOW_SUBMISSION_OPT)
 
@@ -22,9 +24,9 @@ class GitSubmitterPlugin implements Plugin<Project> {
             args << username
 
             args << p(Application.PASSWORD_OPT)
-            args << password
+            args << new String(password)
 
-            Application.main(args)
+            Application.main((String[])args)
         }
     }
 
