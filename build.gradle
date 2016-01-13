@@ -14,7 +14,7 @@ dependencies {
 }
 
 group = 'org.cs1331'
-version = '0.1-SNAPSHOT'
+version = '0.2-SNAPSHOT'
 mainClassName = 'org.cs1331.gitsubmitter.Application'
 
 run {

@@ -13,6 +13,11 @@ class GitSubmitterPlugin implements Plugin<Project> {
                 args.addAll(project.submission.collabs)
             }
 
+            if (project.submission.files.size() > 0) {
+                args << p(Application.OVERRIDE_FILES_OPT)
+                args.addAll(project.submission.files)
+            }
+
             args << p(Application.SHOW_SUBMISSION_OPT)
             args << p(Application.FORCE_SUBMIT_OPT)
 
