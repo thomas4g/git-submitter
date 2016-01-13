@@ -5,6 +5,7 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -173,7 +174,7 @@ public class StudentSubmission {
     private void expandFiles(File file, List<File> list) {
         if (file.isDirectory()) {
             Arrays.stream(file.listFiles()).forEach(f -> expandFiles(f, list));
-        } else if (file.getName().endsWith(".java")) {
+        } else if (file.getName().endsWith(".java") && file.exists()) {
             list.add(file);
         } else {
             logger.info("Skipping file " + file.getName());
@@ -234,6 +235,12 @@ public class StudentSubmission {
         List<File> files = new ArrayList<>();
         Arrays.stream(fileNames).map(File::new)
             .forEach(f -> expandFiles(f, files));
+
+        if (files.isEmpty()) {
+            throw new FileNotFoundException("Specified files could not be found. Common problems "
+                + "include not placing your source files in src/main/java or moving or deleting the"
+                + "src/ directory. If you're not sure, ask a TA for help.");
+        }
 
         tree.tree = files.stream().filter(f -> !f.isDirectory()).map(Tree::new)
             .toArray(Tree[]::new);

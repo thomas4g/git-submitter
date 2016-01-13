@@ -7,8 +7,6 @@ class GitSubmitterPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.extensions.create("submission", GitSubmitterPluginExtension)
         project.task('submit') << {
-            def username = System.console().readLine('\nUsername (e.g, gburdell3): ');
-            def password = System.console().readPassword('Password: ');
             List<String> args = []
             if (project.submission.collabs.size() > 0) {
                 args << p(Application.ADD_COLLABS_OPT)
@@ -16,15 +14,10 @@ class GitSubmitterPlugin implements Plugin<Project> {
             }
 
             args << p(Application.SHOW_SUBMISSION_OPT)
+            args << p(Application.FORCE_SUBMIT_OPT)
 
             args << p(Application.REPO_NAME_OPT)
             args << project.submission.repo_name
-
-            args << p(Application.USERNAME_OPT)
-            args << username
-
-            args << p(Application.PASSWORD_OPT)
-            args << new String(password)
 
             Application.main((String[])args)
         }
