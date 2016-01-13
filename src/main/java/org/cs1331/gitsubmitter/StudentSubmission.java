@@ -35,6 +35,9 @@ public class StudentSubmission {
 
     private static final String BASE = "https://github.gatech.edu/api/v3/";
 
+    //TODO: flesh this out or make a config option, or use a blacklist instead (use .gitignore?)
+    private static final String[] VALID_EXTS = {"java", "txt", "md", "markdown"};
+
     private String user;
     private String base64Auth;
     private String repo;
@@ -174,11 +177,15 @@ public class StudentSubmission {
     private void expandFiles(File file, List<File> list) {
         if (file.isDirectory()) {
             Arrays.stream(file.listFiles()).forEach(f -> expandFiles(f, list));
-        } else if (file.getName().endsWith(".java") && file.exists()) {
+        } else if (isValidFileType(file.getName()) && file.exists()) {
             list.add(file);
         } else {
             logger.info("Skipping file " + file.getName());
         }
+    }
+
+    private boolean isValidFileType(String fileName) {
+        return Arrays.stream(VALID_EXTS).anyMatch(s -> fileName.endsWith("." + s));
     }
 
     private boolean checkResponse(int code) {
@@ -239,7 +246,7 @@ public class StudentSubmission {
         if (files.isEmpty()) {
             throw new FileNotFoundException("Specified files could not be found. Common problems "
                 + "include not placing your source files in src/main/java or moving or deleting the"
-                + "src/ directory. If you're not sure, ask a TA for help.");
+                + " src/ directory. If you're not sure, ask a TA for help.");
         }
 
         tree.tree = files.stream().filter(f -> !f.isDirectory()).map(Tree::new)
