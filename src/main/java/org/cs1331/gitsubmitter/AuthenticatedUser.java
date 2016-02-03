@@ -48,6 +48,7 @@ public class AuthenticatedUser {
             password = new String(System.console().readPassword());
             try {
                 authUser = create(user, password);
+                success = true;
             } catch (FailedLoginException e) {
                 success = false;
             }
