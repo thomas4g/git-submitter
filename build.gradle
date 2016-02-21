@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'groovy'
+apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
@@ -20,5 +21,20 @@ mainClassName = 'org.cs1331.gitsubmitter.Application'
 run {
     if (project.hasProperty("appArgs")) {
         args Eval.me(appArgs)
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId 'git-submitter-gradle-plugin'
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            url 'sftp://repo.tweedbathrobe.com/'
+        }
     }
 }
