@@ -36,7 +36,8 @@ public class StudentSubmission {
     private static final String BASE = "https://github.gatech.edu/api/v3/";
 
     //TODO: flesh this out or make a config option, or use a blacklist instead (use .gitignore?)
-    private static final String[] VALID_EXTS = {"java", "txt", "md", "markdown"};
+    private static final String[] VALID_EXTS = {"java", "txt", "md", "markdown", "png", "jpg",
+                                                "jpeg", "gif", "bmp"};
 
     private String user;
     private String base64Auth;
@@ -185,7 +186,7 @@ public class StudentSubmission {
     }
 
     private boolean isValidFileType(String fileName) {
-        return Arrays.stream(VALID_EXTS).anyMatch(s -> fileName.endsWith("." + s));
+        return Arrays.stream(VALID_EXTS).anyMatch(s -> fileName.toLowerCase().endsWith("." + s));
     }
 
     private boolean checkResponse(int code) {
