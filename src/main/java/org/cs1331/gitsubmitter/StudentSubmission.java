@@ -10,11 +10,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -67,26 +67,26 @@ public class StudentSubmission {
     }
 
     private int request(String path, String type, String content)
-            throws Exception {
+            throws IOException {
         return Utils.doRequest(path, type, base64Auth, content, null,
                                headers, null);
     }
 
     private int request(String path, String type, String content,
-        StringBuilder out) throws Exception {
+        StringBuilder out) throws IOException {
         return Utils.doRequest(path, type, base64Auth, content, out,
                                headers, null);
     }
 
     private int request(String path, String type, String content,
-        Map<String, List<String>> respHeadersOut) throws Exception {
+        Map<String, List<String>> respHeadersOut) throws IOException {
         return Utils.doRequest(path, type, base64Auth, content, null,
                                headers, respHeadersOut);
     }
 
     private int request(String path, String type, String content,
         StringBuilder out, Map<String, List<String>> respHeadersOut)
-        throws Exception {
+        throws IOException {
         return Utils.doRequest(path, type, base64Auth, content, out,
                                headers, respHeadersOut);
     }
@@ -264,12 +264,34 @@ public class StudentSubmission {
         return gson.fromJson(sb.toString(), SHAObject.class);
     }
 
+    private SHAObject createBlob(File f) throws IOException {
+       StringBuilder sb = new StringBuilder();
+        request(String.format("repos/%s/%s/git/blobs", user,
+            repo), "POST", gson.toJson(new Blob(f)), sb);
+        return gson.fromJson(sb.toString(), SHAObject.class); 
+    }
+
     private class Ref {
         public SHAObject object;
     }
 
     private class SHAObject {
         public String sha;
+    }
+
+    private class Blob {
+        public String content;
+        public String encoding;
+        
+        public Blob(File f) {
+            byte[] fileContents = null;
+            try {
+                this.content = Base64.getEncoder().encodeToString(Utils.readFile(f));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            this.encoding = "base64"; 
+        }
     }
 
     private class TreeRoot {
@@ -283,19 +305,16 @@ public class StudentSubmission {
         public String path;
         public String mode;
         public String type;
-        public String content;
+        public String sha;
         public Tree(File f) {
             path = f.getPath().replace(File.separatorChar, '/');
             this.mode = FILE_MODE;
             this.type = TYPE_FILE;
-            byte[] fileContents = new byte[(int) f.length()];
             try {
-                new DataInputStream(new FileInputStream(f))
-                    .readFully(fileContents);
+                this.sha = createBlob(f).sha;
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-            content = new String(fileContents, Charset.forName("UTF-8"));
         }
 
         public String toString() {

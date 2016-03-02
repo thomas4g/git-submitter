@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -60,7 +59,7 @@ public class Utils {
     public static int doRequest(String path, String type, String auth,
           String content, StringBuilder sb, Map<String, String> headers,
           Map<String, List<String>> responseHeadersOut)
-          throws IOException, MalformedURLException {
+          throws IOException {
 
         HttpsURLConnection conn = (HttpsURLConnection) new URL(BASE + path)
             .openConnection();
@@ -88,11 +87,11 @@ public class Utils {
             if (null == sb) {
                 sb = new StringBuilder();
             }
-            if (conn.getInputStream().available() > 0) {
+            logger.info("Response code: " + conn.getResponseCode()); 
+            if (conn.getResponseCode() != -1 && (conn.getResponseCode() < 400 || conn.getResponseCode() > 600) && conn.getInputStream().available() > 0) {
                 sb.append(new Scanner(conn.getInputStream()).useDelimiter("\\A")
                 .next());
             }
-            logger.info("Response code: " + conn.getResponseCode()); 
             logger.info("Response data: ");
             logger.info(sb.toString());
 
@@ -100,14 +99,15 @@ public class Utils {
                 responseHeadersOut.putAll(conn.getHeaderFields());
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
+            throw e;
         }
         return conn.getResponseCode();
     }
 
     public static boolean testAuth(String base64)
-        throws TwoFactorAuthException, MalformedURLException, IOException {
+        throws TwoFactorAuthException, IOException {
         Map<String, List<String>> headers = new HashMap<>();
         int code = doRequest("", "GET", base64, "", null, null, headers);
         if (null != headers.get("X-GitHub-OTP")) {
@@ -117,16 +117,16 @@ public class Utils {
     }
 
     public static boolean testTwoFactorAuth(String base64, String code)
-        throws IOException, MalformedURLException {
+        throws IOException {
         Map<String, String> auth = new HashMap<>();
         auth.put("X-GitHub-OTP", code);
         return doRequest("", "GET", base64, "", null, auth, null) != 401;
     }
 
-    private static byte[] readFile(String s) throws IOException {
+    public static byte[] readFile(String s) throws IOException {
         return readFile(new File(s));
     }
-    private static byte[] readFile(File f) throws IOException {
+    public static byte[] readFile(File f) throws IOException {
         byte[] bytes = new byte[(int) f.length()];
         new DataInputStream(new FileInputStream(f)).readFully(bytes);
         return bytes;
